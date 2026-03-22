@@ -1241,11 +1241,12 @@ function importAll(e) {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (data.ingredients) DB.ingredients = data.ingredients;
-      if (data.recipes) DB.recipes = data.recipes;
+      if (data.ingredients)   DB.ingredients   = data.ingredients;
+      if (data.recipes)       DB.recipes       = data.recipes;
+      if (data.overheadSets)  DB.overheadSets  = data.overheadSets;
       save();
       renderDashboard();
-      toast(`Imported ${DB.ingredients.length} ingredients, ${DB.recipes.length} recipes`, 'ok');
+      toast(`Imported: ${DB.ingredients.length} ingredients, ${DB.recipes.length} recipes, ${DB.overheadSets.length} overhead sets`, 'ok');
     } catch(err) {
       toast('Invalid JSON file', 'err');
     }
