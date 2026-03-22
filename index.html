@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FOOD-MATIC — Food Development Tool</title>
+  <title>FOOD-MATIC</title>
   <style>
-    /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #0f1117;
@@ -15,781 +14,253 @@
       --accent: #4f8ef7;
       --accent2: #34d399;
       --warn: #f59e0b;
-      --danger: #ef4444;
       --text: #e2e8f0;
       --muted: #7c8db5;
-      --radius: 10px;
-      --shadow: 0 4px 24px rgba(0,0,0,.4);
+      --radius: 14px;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; min-height: 100vh; }
-    a { color: var(--accent); text-decoration: none; }
-    button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 600; transition: opacity .15s, transform .1s; }
-    button:active { transform: scale(.97); }
-    button:hover { opacity: .88; }
-    input, select, textarea {
-      background: var(--bg); color: var(--text); border: 1px solid var(--border);
-      border-radius: 6px; padding: 8px 12px; font-size: 14px; width: 100%;
-      outline: none; transition: border-color .2s;
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .badge-blue { background: #1e3a6e; color: var(--accent); }
-    .badge-green { background: #0d3a2a; color: var(--accent2); }
-    .badge-warn { background: #3a2a0d; color: var(--warn); }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin: 2px; background: var(--surface2); color: var(--muted); }
 
-    /* ── Layout ── */
-    #app { display: flex; flex-direction: column; min-height: 100vh; }
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
-    header h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    header h1 span { color: var(--accent); }
-    .nav-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
-    .nav-tab { padding: 10px 18px; background: none; color: var(--muted); border-radius: 0; border-bottom: 2px solid transparent; font-size: 14px; white-space: nowrap; }
-    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    main { flex: 1; padding: 20px; max-width: 900px; width: 100%; margin: 0 auto; }
-    .page { display: none; }
-    .page.active { display: block; }
+    /* ── Header ── */
+    header {
+      padding: 32px 24px 0;
+      text-align: center;
+    }
+    .logo {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .logo span { color: var(--accent); }
+    .tagline {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+      letter-spacing: .5px;
+    }
+    .divider {
+      width: 48px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      margin: 16px auto 0;
+    }
 
-    /* ── Grid helpers ── */
-    .row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .col { flex: 1; min-width: 160px; }
-    .col-2 { flex: 2; min-width: 200px; }
+    /* ── Grid ── */
+    main {
+      flex: 1;
+      padding: 32px 20px 40px;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
 
-    /* ── Ingredient list ── */
-    .item-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .item-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface2); border-radius: 8px; padding: 10px 14px;
+    /* ── App Card ── */
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .app-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--card-color, var(--accent));
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .app-card:hover {
+      border-color: var(--card-color, var(--accent));
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .app-card.soon {
+      opacity: .5;
+      cursor: default;
+      pointer-events: none;
+    }
+    .app-icon { font-size: 32px; line-height: 1; }
+    .app-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.3px;
+    }
+    .app-name span { color: var(--card-color, var(--accent)); }
+    .app-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .app-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: auto;
+    }
+    .app-tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--surface2);
+      color: var(--muted);
       border: 1px solid var(--border);
     }
-    .item-row .name { flex: 1; font-weight: 600; }
-    .item-row .meta { font-size: 12px; color: var(--muted); }
-    .item-row .cost { color: var(--accent2); font-weight: 700; font-size: 13px; }
-    .btn-icon { background: none; color: var(--muted); padding: 4px 8px; font-size: 16px; }
-    .btn-icon:hover { color: var(--danger); }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-success { background: var(--accent2); color: #0d1117; }
-    .btn-warn { background: var(--warn); color: #0d1117; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .badge-new {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      background: var(--accent2);
+      color: #0d1117;
+      border-radius: 20px;
+    }
+    .badge-soon {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      background: var(--surface2);
+      color: var(--muted);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
 
-    /* ── Form section ── */
-    .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
-    .form-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
-    .field { margin-bottom: 12px; }
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
 
-    /* ── Recipe ingredients table ── */
-    .recipe-ing { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
-    .recipe-ing th { background: var(--surface2); color: var(--muted); padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-    .recipe-ing td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
-    .recipe-ing tr:last-child td { border: none; }
-
-    /* ── Cost summary box ── */
-    .cost-summary { background: var(--surface2); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
-    .cost-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
-    .cost-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; font-weight: 700; font-size: 16px; color: var(--accent2); }
-
-    /* ── Recipe card grid ── */
-    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 12px; }
-    .recipe-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: border-color .2s; }
-    .recipe-card:hover { border-color: var(--accent); }
-    .recipe-card h3 { font-size: 16px; margin-bottom: 6px; }
-    .recipe-card .rc-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .recipe-card .rc-cost { color: var(--accent2); font-weight: 700; font-size: 18px; margin-top: 8px; }
-
-    /* ── Modal ── */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: flex-start; justify-content: center; z-index: 100; overflow-y: auto; padding: 20px; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 640px; padding: 24px; margin: auto; box-shadow: var(--shadow); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .modal-header h2 { font-size: 18px; }
-    .modal-close { background: none; color: var(--muted); font-size: 20px; padding: 2px 8px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-
-    /* ── Dashboard cards ── */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
-    .stat-card .num { font-size: 32px; font-weight: 800; }
-    .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-    /* ── Notifications ── */
-    #toast { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
-    .toast-msg { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-size: 14px; box-shadow: var(--shadow); animation: slideIn .2s ease; }
-    .toast-msg.ok { border-color: var(--accent2); color: var(--accent2); }
-    .toast-msg.err { border-color: var(--danger); color: var(--danger); }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* ── Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    /* ── Mobile ── */
-    @media (max-width: 600px) {
-      main { padding: 12px; }
-      .row { flex-direction: column; }
-      .recipe-grid { grid-template-columns: 1fr; }
-      header h1 { font-size: 17px; }
+    @media (max-width: 500px) {
+      .logo { font-size: 28px; }
+      main { padding: 20px 14px 30px; }
+      .app-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .app-card { padding: 16px 14px; }
+      .app-icon { font-size: 26px; }
+      .app-name { font-size: 14px; }
     }
   </style>
 </head>
 <body>
-<div id="app">
-  <header>
-    <div>
-      <h1>FOOD<span>-MATIC</span></h1>
-      <div style="font-size:11px;color:var(--muted)">Food Development Tool</div>
-    </div>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn-ghost btn-sm" onclick="exportAll()">⬇ Export JSON</button>
-      <label style="margin:0">
-        <button class="btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(event)">
-      </label>
-    </div>
-  </header>
 
-  <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
-    <button class="nav-tab" onclick="showPage('ingredients')">Ingredients</button>
-    <button class="nav-tab" onclick="showPage('recipes')">Recipes</button>
-  </nav>
+<header>
+  <div class="logo">FOOD<span>-MATIC</span></div>
+  <div class="tagline">Food Development Platform</div>
+  <div class="divider"></div>
+</header>
 
-  <main>
-    <!-- ── DASHBOARD ── -->
-    <div id="page-dashboard" class="page active">
-      <div class="stat-grid" id="statGrid"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="card">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Most Expensive Recipes (cost/serving)</div>
-          <div id="topCostList"></div>
-        </div>
-        <div class="card">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Ingredient Price Reference</div>
-          <div id="ingSummary"></div>
-        </div>
+<main>
+
+  <div class="section-label" style="margin-top:32px">Beverage R&amp;D</div>
+  <div class="app-grid">
+
+    <a class="app-card" href="beverages/" style="--card-color:#4f8ef7">
+      <span class="badge-new">LIVE</span>
+      <div class="app-icon">🧋</div>
+      <div class="app-name">BEVE<span>-MATIC</span></div>
+      <div class="app-desc">Beverage recipe builder — ingredient costing, yield, food cost %</div>
+      <div class="app-tags">
+        <span class="app-tag">Recipes</span>
+        <span class="app-tag">Costing</span>
+        <span class="app-tag">Yield</span>
+        <span class="app-tag">Import/Export</span>
       </div>
-    </div>
+    </a>
 
-    <!-- ── INGREDIENTS ── -->
-    <div id="page-ingredients" class="page">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h2 style="font-size:18px">Ingredients</h2>
-        <button class="btn-primary" onclick="openIngModal()">+ Add Ingredient</button>
+    <div class="app-card soon" style="--card-color:#a78bfa">
+      <span class="badge-soon">SOON</span>
+      <div class="app-icon">☕</div>
+      <div class="app-name">BREW<span>-MATIC</span></div>
+      <div class="app-desc">Coffee &amp; tea specialty — extraction, brew ratio, tasting notes</div>
+      <div class="app-tags">
+        <span class="app-tag">Coffee</span>
+        <span class="app-tag">Tea</span>
+        <span class="app-tag">Brew Ratio</span>
       </div>
-      <input type="text" id="ingSearch" placeholder="Search ingredients..." style="margin-bottom:12px" oninput="renderIngredients()">
-      <div class="item-list" id="ingList"></div>
     </div>
 
-    <!-- ── RECIPES ── -->
-    <div id="page-recipes" class="page">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h2 style="font-size:18px">Recipes</h2>
-        <button class="btn-primary" onclick="openRecipeModal()">+ New Recipe</button>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <input type="text" id="recipeSearch" placeholder="Search recipes..." style="flex:1;min-width:160px" oninput="renderRecipes()">
-        <select id="recipeCatFilter" onchange="renderRecipes()" style="width:140px">
-          <option value="">All Categories</option>
-        </select>
-      </div>
-      <div class="recipe-grid" id="recipeGrid"></div>
-    </div>
-  </main>
-</div>
-
-<!-- ── INGREDIENT MODAL ── -->
-<div class="modal-overlay" id="ingModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="ingModalTitle">Add Ingredient</h2>
-      <button class="modal-close" onclick="closeIngModal()">✕</button>
-    </div>
-    <div class="row">
-      <div class="col field" style="max-width:90px">
-        <label>No. *</label>
-        <input id="ing-no" type="number" placeholder="1" min="1" step="1" />
-      </div>
-      <div class="col-2 field">
-        <label>Ingredient Name *</label>
-        <input id="ing-name" placeholder="e.g. Espresso, Milk, Sugar" />
-      </div>
-      <div class="col field">
-        <label>Category</label>
-        <input id="ing-cat" placeholder="e.g. Coffee, Dairy" />
-      </div>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <div class="col field">
-        <label>Purchase Quantity</label>
-        <input id="ing-qty" type="number" placeholder="1000" min="0" />
-      </div>
-      <div class="col field">
-        <label>Unit</label>
-        <select id="ing-unit">
-          <option>g</option><option>ml</option><option>kg</option>
-          <option>L</option><option>pc</option><option>oz</option><option>tbsp</option><option>tsp</option>
-        </select>
-      </div>
-      <div class="col field">
-        <label>Purchase Price (฿)</label>
-        <input id="ing-price" type="number" placeholder="150" min="0" step="0.01" />
-      </div>
-    </div>
-    <div class="cost-summary" style="margin-top:8px" id="ingCalcPreview"></div>
-    <div class="field" style="margin-top:12px">
-      <label>Notes</label>
-      <textarea id="ing-notes" rows="2" placeholder="Brand, supplier, storage..."></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeIngModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveIngredient()">Save</button>
-    </div>
   </div>
-</div>
 
-<!-- ── RECIPE MODAL ── -->
-<div class="modal-overlay" id="recipeModal">
-  <div class="modal" style="max-width:720px">
-    <div class="modal-header">
-      <h2 id="recipeModalTitle">New Recipe</h2>
-      <button class="modal-close" onclick="closeRecipeModal()">✕</button>
-    </div>
+  <div class="section-label">Food R&amp;D</div>
+  <div class="app-grid">
 
-    <div class="form-section">
-      <h3>Recipe Info</h3>
-      <div class="row">
-        <div class="col-2 field">
-          <label>Menu Name *</label>
-          <input id="rec-name" placeholder="e.g. Caramel Latte" />
-        </div>
-        <div class="col field">
-          <label>Category</label>
-          <input id="rec-cat" placeholder="e.g. Hot Coffee" />
-        </div>
-      </div>
-      <div class="row">
-        <div class="col field">
-          <label>Serving Size</label>
-          <input id="rec-serving" type="number" placeholder="1" min="1" value="1" />
-        </div>
-        <div class="col field">
-          <label>Yield (output ml/g)</label>
-          <input id="rec-yield" type="number" placeholder="250" min="0" />
-        </div>
-        <div class="col field">
-          <label>Selling Price (฿)</label>
-          <input id="rec-price" type="number" placeholder="80" min="0" step="0.01" />
-        </div>
-      </div>
-      <div class="field">
-        <label>Description / Method</label>
-        <textarea id="rec-desc" rows="2" placeholder="Steps, notes, serving suggestions..."></textarea>
+    <div class="app-card soon" style="--card-color:#34d399">
+      <span class="badge-soon">SOON</span>
+      <div class="app-icon">🍝</div>
+      <div class="app-name">SAUCE<span>-MATIC</span></div>
+      <div class="app-desc">Sauce &amp; condiment formulation — batch scaling, Brix, pH notes</div>
+      <div class="app-tags">
+        <span class="app-tag">Sauce</span>
+        <span class="app-tag">Batch Scale</span>
+        <span class="app-tag">Brix</span>
       </div>
     </div>
 
-    <div class="form-section">
-      <h3>Ingredients</h3>
-      <div class="row" style="margin-bottom:8px">
-        <div class="col-2">
-          <label>Select Ingredient</label>
-          <select id="rec-ing-pick">
-            <option value="">-- pick ingredient --</option>
-          </select>
-        </div>
-        <div class="col">
-          <label>Amount</label>
-          <input id="rec-ing-amt" type="number" placeholder="30" min="0" step="0.1" />
-        </div>
-        <div style="display:flex;align-items:flex-end;padding-bottom:1px">
-          <button class="btn-success" onclick="addRecipeIngredient()">Add</button>
-        </div>
+    <div class="app-card soon" style="--card-color:#f59e0b">
+      <span class="badge-soon">SOON</span>
+      <div class="app-icon">🍞</div>
+      <div class="app-name">BAKE<span>-MATIC</span></div>
+      <div class="app-desc">Bakery formulation — baker's percentage, hydration, fermentation</div>
+      <div class="app-tags">
+        <span class="app-tag">Bakery</span>
+        <span class="app-tag">Baker's %</span>
+        <span class="app-tag">Hydration</span>
       </div>
-      <table class="recipe-ing" id="recipeIngTable">
-        <thead>
-          <tr>
-            <th>No.</th><th>Ingredient</th><th>Amount</th><th>Unit</th><th>Cost (฿)</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="recipeIngBody"></tbody>
-      </table>
     </div>
 
-    <div class="cost-summary" id="recipeCostPreview"></div>
-
-    <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeRecipeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveRecipe()">Save Recipe</button>
+    <div class="app-card soon" style="--card-color:#ef4444">
+      <span class="badge-soon">SOON</span>
+      <div class="app-icon">🍱</div>
+      <div class="app-name">MENU<span>-MATIC</span></div>
+      <div class="app-desc">Full menu costing — multi-item sets, margin analysis, pricing</div>
+      <div class="app-tags">
+        <span class="app-tag">Menu</span>
+        <span class="app-tag">Margin</span>
+        <span class="app-tag">Pricing</span>
+      </div>
     </div>
+
   </div>
-</div>
 
-<!-- ── RECIPE DETAIL MODAL ── -->
-<div class="modal-overlay" id="recipeDetailModal">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-header">
-      <h2 id="rdTitle"></h2>
-      <button class="modal-close" onclick="closeDetailModal()">✕</button>
-    </div>
-    <div id="rdBody"></div>
-    <div class="modal-footer">
-      <button class="btn-danger btn-sm" id="rdDeleteBtn">Delete</button>
-      <button class="btn-ghost btn-sm" id="rdEditBtn">Edit</button>
-      <button class="btn-ghost" onclick="closeDetailModal()">Close</button>
-    </div>
-  </div>
-</div>
+</main>
 
-<!-- ── TOAST ── -->
-<div id="toast"></div>
+<footer>FOOD-MATIC &nbsp;·&nbsp; Food Development Platform &nbsp;·&nbsp; <a href="https://github.com/manuschais/FOOD-MATIC" style="color:var(--muted)">GitHub</a></footer>
 
-<script>
-// ═══════════════════════════════════════════════
-// DATA STORE
-// ═══════════════════════════════════════════════
-const DB = {
-  ingredients: [],
-  recipes: [],
-};
-
-function load() {
-  try {
-    const raw = localStorage.getItem('foodmatic_v1');
-    if (raw) Object.assign(DB, JSON.parse(raw));
-  } catch(e) {}
-}
-
-function save() {
-  localStorage.setItem('foodmatic_v1', JSON.stringify(DB));
-}
-
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-
-// ═══════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  document.querySelectorAll('.nav-tab').forEach(t => {
-    if (t.textContent.toLowerCase().includes(id === 'dashboard' ? 'dash' : id)) t.classList.add('active');
-  });
-  if (id === 'ingredients') renderIngredients();
-  if (id === 'recipes') renderRecipes();
-  if (id === 'dashboard') renderDashboard();
-}
-
-// ═══════════════════════════════════════════════
-// INGREDIENTS
-// ═══════════════════════════════════════════════
-let editIngId = null;
-
-function costPerUnit(ing) {
-  if (!ing.qty || !ing.price) return 0;
-  return ing.price / ing.qty;
-}
-
-function openIngModal(id) {
-  editIngId = id || null;
-  const m = document.getElementById('ingModal');
-  document.getElementById('ingModalTitle').textContent = id ? 'Edit Ingredient' : 'Add Ingredient';
-  if (id) {
-    const ing = DB.ingredients.find(i => i.id === id);
-    document.getElementById('ing-no').value = ing.no || '';
-    document.getElementById('ing-name').value = ing.name;
-    document.getElementById('ing-cat').value = ing.cat || '';
-    document.getElementById('ing-qty').value = ing.qty;
-    document.getElementById('ing-unit').value = ing.unit;
-    document.getElementById('ing-price').value = ing.price;
-    document.getElementById('ing-notes').value = ing.notes || '';
-  } else {
-    ['ing-name','ing-cat','ing-qty','ing-price','ing-notes'].forEach(f => document.getElementById(f).value = '');
-    document.getElementById('ing-unit').value = 'g';
-    const nextNo = DB.ingredients.length ? Math.max(...DB.ingredients.map(i => i.no || 0)) + 1 : 1;
-    document.getElementById('ing-no').value = nextNo;
-  }
-  updateIngCalcPreview();
-  m.classList.add('open');
-}
-
-function closeIngModal() { document.getElementById('ingModal').classList.remove('open'); }
-
-function updateIngCalcPreview() {
-  const qty = parseFloat(document.getElementById('ing-qty').value) || 0;
-  const price = parseFloat(document.getElementById('ing-price').value) || 0;
-  const unit = document.getElementById('ing-unit').value;
-  const cpu = qty ? (price / qty).toFixed(4) : '—';
-  document.getElementById('ingCalcPreview').innerHTML = `
-    <div class="cost-row"><span>Purchase Qty</span><span>${qty || '—'} ${unit}</span></div>
-    <div class="cost-row"><span>Purchase Price</span><span>฿${price.toFixed(2)}</span></div>
-    <div class="cost-row total"><span>Cost per ${unit}</span><span>฿${cpu}</span></div>
-  `;
-}
-
-['ing-qty','ing-price','ing-unit'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateIngCalcPreview);
-});
-
-function saveIngredient() {
-  const name = document.getElementById('ing-name').value.trim();
-  if (!name) { toast('Please enter ingredient name', 'err'); return; }
-  const no = parseInt(document.getElementById('ing-no').value);
-  if (!no || no < 1) { toast('Please enter a valid No.', 'err'); return; }
-  const duplicate = DB.ingredients.find(i => i.no === no && i.id !== editIngId);
-  if (duplicate) { toast(`No. ${no} is already used by "${duplicate.name}"`, 'err'); return; }
-  const data = {
-    no,
-    name,
-    cat: document.getElementById('ing-cat').value.trim(),
-    qty: parseFloat(document.getElementById('ing-qty').value) || 0,
-    unit: document.getElementById('ing-unit').value,
-    price: parseFloat(document.getElementById('ing-price').value) || 0,
-    notes: document.getElementById('ing-notes').value.trim(),
-  };
-  if (editIngId) {
-    const idx = DB.ingredients.findIndex(i => i.id === editIngId);
-    DB.ingredients[idx] = { ...DB.ingredients[idx], ...data };
-    toast('Ingredient updated');
-  } else {
-    DB.ingredients.push({ id: uid(), ...data });
-    toast('Ingredient added', 'ok');
-  }
-  save();
-  closeIngModal();
-  renderIngredients();
-  renderDashboard();
-}
-
-function deleteIngredient(id) {
-  const used = DB.recipes.some(r => r.ingredients && r.ingredients.some(i => i.ingId === id));
-  if (used) { toast('Cannot delete — used in a recipe', 'err'); return; }
-  if (!confirm('Delete this ingredient?')) return;
-  DB.ingredients = DB.ingredients.filter(i => i.id !== id);
-  save();
-  renderIngredients();
-  renderDashboard();
-  toast('Deleted');
-}
-
-function renderIngredients() {
-  const q = (document.getElementById('ingSearch').value || '').toLowerCase();
-  const list = DB.ingredients.filter(i => i.name.toLowerCase().includes(q) || (i.cat||'').toLowerCase().includes(q));
-  const el = document.getElementById('ingList');
-  if (!list.length) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">No ingredients yet. Click "+ Add Ingredient"</div>'; return; }
-  el.innerHTML = list.map(i => {
-    const cpu = costPerUnit(i);
-    return `<div class="item-row">
-      <div style="min-width:32px;text-align:center;color:var(--muted);font-size:12px;font-weight:700">#${i.no || '—'}</div>
-      <div>
-        <div class="name">${esc(i.name)}</div>
-        <div class="meta">${i.cat ? `<span class="tag">${esc(i.cat)}</span>` : ''} ${i.qty}${i.unit} @ ฿${i.price}</div>
-      </div>
-      <div class="cost">฿${cpu.toFixed(4)}/${i.unit}</div>
-      <button class="btn-icon" title="Edit" onclick="openIngModal('${i.id}')">✏️</button>
-      <button class="btn-icon" title="Delete" onclick="deleteIngredient('${i.id}')">🗑️</button>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════
-// RECIPES
-// ═══════════════════════════════════════════════
-let editRecId = null;
-let recIngList = [];  // [{ingId, name, unit, amount}]
-
-function recipeTotalCost(rec) {
-  return (rec.ingredients || []).reduce((s, ri) => {
-    const ing = DB.ingredients.find(i => i.id === ri.ingId);
-    if (!ing) return s;
-    return s + costPerUnit(ing) * ri.amount;
-  }, 0);
-}
-
-function recipeCostPerServing(rec) {
-  const total = recipeTotalCost(rec);
-  return total / (rec.serving || 1);
-}
-
-function openRecipeModal(id) {
-  editRecId = id || null;
-  recIngList = [];
-  document.getElementById('recipeModalTitle').textContent = id ? 'Edit Recipe' : 'New Recipe';
-  if (id) {
-    const r = DB.recipes.find(r => r.id === id);
-    document.getElementById('rec-name').value = r.name;
-    document.getElementById('rec-cat').value = r.cat || '';
-    document.getElementById('rec-serving').value = r.serving || 1;
-    document.getElementById('rec-yield').value = r.yield || '';
-    document.getElementById('rec-price').value = r.price || '';
-    document.getElementById('rec-desc').value = r.desc || '';
-    recIngList = JSON.parse(JSON.stringify(r.ingredients || []));
-  } else {
-    ['rec-name','rec-cat','rec-yield','rec-price','rec-desc'].forEach(f => document.getElementById(f).value = '');
-    document.getElementById('rec-serving').value = 1;
-  }
-  populateIngPicker();
-  renderRecipeIngTable();
-  updateRecipeCostPreview();
-  document.getElementById('recipeModal').classList.add('open');
-}
-
-function closeRecipeModal() { document.getElementById('recipeModal').classList.remove('open'); }
-
-function populateIngPicker() {
-  const sel = document.getElementById('rec-ing-pick');
-  sel.innerHTML = '<option value="">-- pick ingredient --</option>' +
-    DB.ingredients.map(i => `<option value="${i.id}">#${i.no || '?'} ${esc(i.name)} (${i.unit})</option>`).join('');
-}
-
-function addRecipeIngredient() {
-  const ingId = document.getElementById('rec-ing-pick').value;
-  const amount = parseFloat(document.getElementById('rec-ing-amt').value);
-  if (!ingId) { toast('Pick an ingredient', 'err'); return; }
-  if (!amount || amount <= 0) { toast('Enter a valid amount', 'err'); return; }
-  const ing = DB.ingredients.find(i => i.id === ingId);
-  const existing = recIngList.findIndex(r => r.ingId === ingId);
-  if (existing >= 0) {
-    recIngList[existing].amount = amount;
-  } else {
-    recIngList.push({ ingId, name: ing.name, unit: ing.unit, amount });
-  }
-  document.getElementById('rec-ing-amt').value = '';
-  document.getElementById('rec-ing-pick').value = '';
-  renderRecipeIngTable();
-  updateRecipeCostPreview();
-}
-
-function removeRecIng(idx) {
-  recIngList.splice(idx, 1);
-  renderRecipeIngTable();
-  updateRecipeCostPreview();
-}
-
-function renderRecipeIngTable() {
-  const tbody = document.getElementById('recipeIngBody');
-  tbody.innerHTML = recIngList.map((ri, idx) => {
-    const ing = DB.ingredients.find(i => i.id === ri.ingId);
-    const cost = ing ? (costPerUnit(ing) * ri.amount).toFixed(2) : '?';
-    return `<tr>
-      <td style="color:var(--muted);font-weight:700">#${ing ? (ing.no || '—') : '—'}</td>
-      <td>${esc(ri.name)}</td>
-      <td>${ri.amount}</td>
-      <td>${ri.unit}</td>
-      <td style="color:var(--accent2)">฿${cost}</td>
-      <td><button class="btn-icon btn-sm" onclick="removeRecIng(${idx})">✕</button></td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:12px">No ingredients added</td></tr>';
-}
-
-function updateRecipeCostPreview() {
-  const serving = parseFloat(document.getElementById('rec-serving').value) || 1;
-  const sellPrice = parseFloat(document.getElementById('rec-price').value) || 0;
-  const totalCost = recIngList.reduce((s, ri) => {
-    const ing = DB.ingredients.find(i => i.id === ri.ingId);
-    return s + (ing ? costPerUnit(ing) * ri.amount : 0);
-  }, 0);
-  const perServing = totalCost / serving;
-  const gp = sellPrice ? sellPrice - perServing : null;
-  const gpPct = (sellPrice && perServing) ? ((gp / sellPrice) * 100).toFixed(1) : null;
-  document.getElementById('recipeCostPreview').innerHTML = `
-    <div class="cost-row"><span>Total Ingredient Cost</span><span>฿${totalCost.toFixed(2)}</span></div>
-    <div class="cost-row"><span>Servings</span><span>${serving}</span></div>
-    <div class="cost-row"><span>Cost per Serving</span><span>฿${perServing.toFixed(2)}</span></div>
-    ${sellPrice ? `<div class="cost-row"><span>Selling Price</span><span>฿${sellPrice.toFixed(2)}</span></div>` : ''}
-    ${gp !== null ? `<div class="cost-row"><span>Gross Profit</span><span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)} (${gpPct}%)</span></div>` : ''}
-    <div class="cost-row total"><span>Food Cost %</span><span>${sellPrice ? ((perServing/sellPrice)*100).toFixed(1)+'%' : '—'}</span></div>
-  `;
-}
-
-['rec-serving','rec-price'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateRecipeCostPreview);
-});
-
-function saveRecipe() {
-  const name = document.getElementById('rec-name').value.trim();
-  if (!name) { toast('Please enter recipe name', 'err'); return; }
-  const data = {
-    name,
-    cat: document.getElementById('rec-cat').value.trim(),
-    serving: parseFloat(document.getElementById('rec-serving').value) || 1,
-    yield: parseFloat(document.getElementById('rec-yield').value) || 0,
-    price: parseFloat(document.getElementById('rec-price').value) || 0,
-    desc: document.getElementById('rec-desc').value.trim(),
-    ingredients: JSON.parse(JSON.stringify(recIngList)),
-    updatedAt: new Date().toISOString(),
-  };
-  if (editRecId) {
-    const idx = DB.recipes.findIndex(r => r.id === editRecId);
-    DB.recipes[idx] = { ...DB.recipes[idx], ...data };
-    toast('Recipe updated');
-  } else {
-    DB.recipes.push({ id: uid(), createdAt: new Date().toISOString(), ...data });
-    toast('Recipe saved', 'ok');
-  }
-  save();
-  closeRecipeModal();
-  renderRecipes();
-  renderDashboard();
-}
-
-function renderRecipes() {
-  const q = (document.getElementById('recipeSearch').value || '').toLowerCase();
-  const cat = document.getElementById('recipeCatFilter').value;
-  // update category filter
-  const cats = [...new Set(DB.recipes.map(r => r.cat).filter(Boolean))];
-  const sel = document.getElementById('recipeCatFilter');
-  const curVal = sel.value;
-  sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}" ${c===curVal?'selected':''}>${esc(c)}</option>`).join('');
-  const list = DB.recipes.filter(r =>
-    (r.name.toLowerCase().includes(q) || (r.cat||'').toLowerCase().includes(q)) &&
-    (!cat || r.cat === cat)
-  );
-  const grid = document.getElementById('recipeGrid');
-  if (!list.length) { grid.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">No recipes yet. Click "+ New Recipe"</div>'; return; }
-  grid.innerHTML = list.map(r => {
-    const cost = recipeCostPerServing(r);
-    const fp = r.price ? ((cost/r.price)*100).toFixed(0) : null;
-    return `<div class="recipe-card" onclick="openDetailModal('${r.id}')">
-      <h3>${esc(r.name)}</h3>
-      ${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : ''}
-      ${r.desc ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4">${esc(r.desc).slice(0,80)}${r.desc.length>80?'…':''}</div>` : ''}
-      <div class="rc-meta">
-        <span>🍶 Yield: ${r.yield || '—'}</span>
-        <span>👤 x${r.serving}</span>
-        ${fp ? `<span>📊 FC: ${fp}%</span>` : ''}
-      </div>
-      <div class="rc-cost">฿${cost.toFixed(2)}/serving</div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════
-// RECIPE DETAIL
-// ═══════════════════════════════════════════════
-function openDetailModal(id) {
-  const r = DB.recipes.find(r => r.id === id);
-  if (!r) return;
-  const totalCost = recipeTotalCost(r);
-  const perServing = recipeCostPerServing(r);
-  const gp = r.price ? (r.price - perServing) : null;
-  document.getElementById('rdTitle').textContent = r.name;
-  document.getElementById('rdBody').innerHTML = `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-      ${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : ''}
-      ${r.yield ? `<span class="badge badge-green">Yield: ${r.yield}</span>` : ''}
-      <span class="badge badge-warn">x${r.serving} serving</span>
-    </div>
-    ${r.desc ? `<p style="font-size:14px;color:var(--muted);margin-bottom:14px;line-height:1.6">${esc(r.desc)}</p>` : ''}
-    <table class="recipe-ing" style="margin-bottom:16px">
-      <thead><tr><th>No.</th><th>Ingredient</th><th>Amount</th><th>Unit</th><th>Cost (฿)</th></tr></thead>
-      <tbody>
-        ${(r.ingredients||[]).map(ri => {
-          const ing = DB.ingredients.find(i => i.id === ri.ingId);
-          const cost = ing ? (costPerUnit(ing) * ri.amount).toFixed(3) : '?';
-          return `<tr><td style="color:var(--muted);font-weight:700">#${ing ? (ing.no || '—') : '—'}</td><td>${esc(ri.name)}</td><td>${ri.amount}</td><td>${ri.unit}</td><td style="color:var(--accent2)">฿${cost}</td></tr>`;
-        }).join('') || '<tr><td colspan="5" style="color:var(--muted)">No ingredients</td></tr>'}
-      </tbody>
-    </table>
-    <div class="cost-summary">
-      <div class="cost-row"><span>Total Ingredient Cost</span><span>฿${totalCost.toFixed(2)}</span></div>
-      <div class="cost-row"><span>Servings</span><span>${r.serving}</span></div>
-      ${r.yield ? `<div class="cost-row"><span>Yield</span><span>${r.yield}</span></div>` : ''}
-      ${r.price ? `<div class="cost-row"><span>Selling Price</span><span>฿${r.price.toFixed(2)}</span></div>` : ''}
-      ${gp !== null ? `<div class="cost-row"><span>Gross Profit</span><span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)} (${((gp/r.price)*100).toFixed(1)}%)</span></div>` : ''}
-      <div class="cost-row total"><span>Cost / Serving</span><span>฿${perServing.toFixed(2)}</span></div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:10px">Updated: ${new Date(r.updatedAt||r.createdAt).toLocaleString()}</div>
-  `;
-  document.getElementById('rdDeleteBtn').onclick = () => { if (confirm('Delete recipe?')) { DB.recipes = DB.recipes.filter(x => x.id !== id); save(); closeDetailModal(); renderRecipes(); renderDashboard(); toast('Deleted'); } };
-  document.getElementById('rdEditBtn').onclick = () => { closeDetailModal(); openRecipeModal(id); };
-  document.getElementById('recipeDetailModal').classList.add('open');
-}
-
-function closeDetailModal() { document.getElementById('recipeDetailModal').classList.remove('open'); }
-
-// ═══════════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════════
-function renderDashboard() {
-  document.getElementById('statGrid').innerHTML = `
-    <div class="stat-card"><div class="num" style="color:var(--accent)">${DB.ingredients.length}</div><div class="lbl">Ingredients</div></div>
-    <div class="stat-card"><div class="num" style="color:var(--accent2)">${DB.recipes.length}</div><div class="lbl">Recipes</div></div>
-    <div class="stat-card"><div class="num" style="color:var(--warn)">${[...new Set(DB.recipes.map(r=>r.cat).filter(Boolean))].length}</div><div class="lbl">Categories</div></div>
-    <div class="stat-card"><div class="num" style="color:#a78bfa">${[...new Set(DB.ingredients.map(i=>i.cat).filter(Boolean))].length}</div><div class="lbl">Ing. Groups</div></div>
-  `;
-  // Top cost recipes
-  const sorted = [...DB.recipes].map(r => ({...r, cps: recipeCostPerServing(r)})).sort((a,b)=>b.cps-a.cps).slice(0,5);
-  document.getElementById('topCostList').innerHTML = sorted.length ?
-    sorted.map(r => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${esc(r.name)}</span><span style="color:var(--accent2)">฿${r.cps.toFixed(2)}</span></div>`).join('') :
-    '<div style="color:var(--muted);font-size:13px">No recipes yet</div>';
-  // Ingredient summary
-  const ings = [...DB.ingredients].sort((a,b)=>costPerUnit(b)-costPerUnit(a)).slice(0,6);
-  document.getElementById('ingSummary').innerHTML = ings.length ?
-    ings.map(i => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${esc(i.name)}</span><span style="color:var(--muted)">฿${costPerUnit(i).toFixed(4)}/${i.unit}</span></div>`).join('') :
-    '<div style="color:var(--muted);font-size:13px">No ingredients yet</div>';
-}
-
-// ═══════════════════════════════════════════════
-// IMPORT / EXPORT
-// ═══════════════════════════════════════════════
-function exportAll() {
-  const payload = { version: 1, exportedAt: new Date().toISOString(), ...DB };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `foodmatic-export-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  toast('Exported', 'ok');
-}
-
-function importAll(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (data.ingredients) DB.ingredients = data.ingredients;
-      if (data.recipes) DB.recipes = data.recipes;
-      save();
-      renderDashboard();
-      toast(`Imported ${DB.ingredients.length} ingredients, ${DB.recipes.length} recipes`, 'ok');
-    } catch(err) {
-      toast('Invalid JSON file', 'err');
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-}
-
-// ═══════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function toast(msg, type = '') {
-  const el = document.createElement('div');
-  el.className = 'toast-msg' + (type ? ' ' + type : '');
-  el.textContent = msg;
-  document.getElementById('toast').appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-load();
-renderDashboard();
-</script>
 </body>
 </html>
