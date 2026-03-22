@@ -57,16 +57,28 @@
     .col { flex: 1; min-width: 160px; }
     .col-2 { flex: 2; min-width: 200px; }
 
-    /* ── Ingredient list ── */
-    .item-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .item-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface2); border-radius: 8px; padding: 10px 14px;
-      border: 1px solid var(--border);
+    /* ── Data Table ── */
+    .data-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); margin-top: 4px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
+      background: var(--surface2); color: var(--muted); padding: 9px 12px;
+      text-align: left; border-bottom: 2px solid var(--border);
+      white-space: nowrap; user-select: none; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .5px;
     }
-    .item-row .name { flex: 1; font-weight: 600; }
-    .item-row .meta { font-size: 12px; color: var(--muted); }
-    .item-row .cost { color: var(--accent2); font-weight: 700; font-size: 13px; }
+    .data-table th.sortable { cursor: pointer; }
+    .data-table th.sortable:hover { color: var(--text); }
+    .data-table th .si { margin-left: 4px; font-size: 10px; opacity: .35; }
+    .data-table th.sort-asc .si { opacity: 1; color: var(--accent); }
+    .data-table th.sort-desc .si { opacity: 1; color: var(--accent); }
+    .data-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--surface2); }
+    .td-no { width: 50px; text-align: center; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .td-name { font-weight: 600; }
+    .td-cost { color: var(--accent2); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .td-muted { color: var(--muted); }
+    .td-act { width: 72px; text-align: right; white-space: nowrap; }
     .btn-icon { background: none; color: var(--muted); padding: 4px 8px; font-size: 16px; }
     .btn-icon:hover { color: var(--danger); }
     .btn-primary { background: var(--accent); color: #fff; }
@@ -92,13 +104,8 @@
     .cost-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
     .cost-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; font-weight: 700; font-size: 16px; color: var(--accent2); }
 
-    /* ── Recipe card grid ── */
-    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 12px; }
-    .recipe-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; cursor: pointer; transition: border-color .2s; }
-    .recipe-card:hover { border-color: var(--accent); }
-    .recipe-card h3 { font-size: 16px; margin-bottom: 6px; }
+    /* ── Recipe card grid (kept for detail only) ── */
     .recipe-card .rc-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .recipe-card .rc-cost { color: var(--accent2); font-weight: 700; font-size: 18px; margin-top: 8px; }
 
     /* ── Modal ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: flex-start; justify-content: center; z-index: 100; overflow-y: auto; padding: 20px; }
@@ -139,9 +146,10 @@
 <body>
 <div id="app">
   <header>
+    <a href="../index.html" style="color:var(--muted);font-size:18px;line-height:1;padding:4px 6px;border-radius:6px;background:var(--surface2);border:1px solid var(--border)" title="Back to HOME">‹</a>
     <div>
-      <h1>FOOD<span>-MATIC</span></h1>
-      <div style="font-size:11px;color:var(--muted)">Food Development Tool</div>
+      <h1>BEVE<span>-MATIC</span></h1>
+      <div style="font-size:11px;color:var(--muted)">Beverage Development Tool</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="btn-ghost btn-sm" onclick="exportAll()">⬇ Export JSON</button>
@@ -181,7 +189,7 @@
         <button class="btn-primary" onclick="openIngModal()">+ Add Ingredient</button>
       </div>
       <input type="text" id="ingSearch" placeholder="Search ingredients..." style="margin-bottom:12px" oninput="renderIngredients()">
-      <div class="item-list" id="ingList"></div>
+      <div class="data-table-wrap" id="ingTable"></div>
     </div>
 
     <!-- ── RECIPES ── -->
@@ -196,7 +204,7 @@
           <option value="">All Categories</option>
         </select>
       </div>
-      <div class="recipe-grid" id="recipeGrid"></div>
+      <div class="data-table-wrap" id="recipeTable"></div>
     </div>
   </main>
 </div>
@@ -477,24 +485,64 @@ function deleteIngredient(id) {
   toast('Deleted');
 }
 
+let sortIng = { f: 'no', d: 1 };
+
+function thIng(label, field, cls='') {
+  const active = sortIng.f === field;
+  const dir = active ? (sortIng.d === 1 ? 'sort-asc' : 'sort-desc') : '';
+  const icon = active ? (sortIng.d === 1 ? '▲' : '▼') : '⇅';
+  return `<th class="sortable ${dir} ${cls}" onclick="setSortIng('${field}')">${label}<span class="si">${icon}</span></th>`;
+}
+
+function setSortIng(f) {
+  sortIng.d = sortIng.f === f ? -sortIng.d : 1;
+  sortIng.f = f;
+  renderIngredients();
+}
+
 function renderIngredients() {
   const q = (document.getElementById('ingSearch').value || '').toLowerCase();
-  const list = DB.ingredients.filter(i => i.name.toLowerCase().includes(q) || (i.cat||'').toLowerCase().includes(q));
-  const el = document.getElementById('ingList');
-  if (!list.length) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">No ingredients yet. Click "+ Add Ingredient"</div>'; return; }
-  el.innerHTML = list.map(i => {
-    const cpu = costPerUnit(i);
-    return `<div class="item-row">
-      <div style="min-width:32px;text-align:center;color:var(--muted);font-size:12px;font-weight:700">#${i.no || '—'}</div>
-      <div>
-        <div class="name">${esc(i.name)}</div>
-        <div class="meta">${i.cat ? `<span class="tag">${esc(i.cat)}</span>` : ''} ${i.qty}${i.unit} @ ฿${i.price}</div>
-      </div>
-      <div class="cost">฿${cpu.toFixed(4)}/${i.unit}</div>
-      <button class="btn-icon" title="Edit" onclick="openIngModal('${i.id}')">✏️</button>
-      <button class="btn-icon" title="Delete" onclick="deleteIngredient('${i.id}')">🗑️</button>
-    </div>`;
-  }).join('');
+  let list = DB.ingredients.filter(i => i.name.toLowerCase().includes(q) || (i.cat||'').toLowerCase().includes(q));
+  list.sort((a, b) => {
+    let va = a[sortIng.f] ?? '', vb = b[sortIng.f] ?? '';
+    if (typeof va === 'string') return va.localeCompare(vb, 'th') * sortIng.d;
+    return (va - vb) * sortIng.d;
+  });
+  const el = document.getElementById('ingTable');
+  if (!list.length) {
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:28px">No ingredients yet. Click "+ Add Ingredient"</div>';
+    return;
+  }
+  el.innerHTML = `<table class="data-table">
+    <thead><tr>
+      ${thIng('No.','no','td-no')}
+      ${thIng('Name','name')}
+      ${thIng('Category','cat')}
+      ${thIng('Qty','qty')}
+      <th>Unit</th>
+      ${thIng('Price (฿)','price')}
+      ${thIng('Cost/Unit','_cpu')}
+      <th class="td-act"></th>
+    </tr></thead>
+    <tbody>
+      ${list.map(i => {
+        const cpu = costPerUnit(i);
+        return `<tr>
+          <td class="td-no">${i.no || '—'}</td>
+          <td class="td-name">${esc(i.name)}</td>
+          <td class="td-muted">${esc(i.cat||'—')}</td>
+          <td class="td-muted">${i.qty||'—'}</td>
+          <td class="td-muted">${i.unit}</td>
+          <td class="td-muted">฿${(i.price||0).toFixed(2)}</td>
+          <td class="td-cost">฿${cpu.toFixed(4)}</td>
+          <td class="td-act">
+            <button class="btn-icon btn-sm" title="Edit" onclick="openIngModal('${i.id}')">✏️</button>
+            <button class="btn-icon btn-sm" title="Delete" onclick="deleteIngredient('${i.id}')">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -638,35 +686,75 @@ function saveRecipe() {
   renderDashboard();
 }
 
+let sortRec = { f: 'name', d: 1 };
+
+function thRec(label, field, cls='') {
+  const active = sortRec.f === field;
+  const dir = active ? (sortRec.d === 1 ? 'sort-asc' : 'sort-desc') : '';
+  const icon = active ? (sortRec.d === 1 ? '▲' : '▼') : '⇅';
+  return `<th class="sortable ${dir} ${cls}" onclick="setSortRec('${field}')">${label}<span class="si">${icon}</span></th>`;
+}
+
+function setSortRec(f) {
+  sortRec.d = sortRec.f === f ? -sortRec.d : 1;
+  sortRec.f = f;
+  renderRecipes();
+}
+
 function renderRecipes() {
   const q = (document.getElementById('recipeSearch').value || '').toLowerCase();
   const cat = document.getElementById('recipeCatFilter').value;
-  // update category filter
   const cats = [...new Set(DB.recipes.map(r => r.cat).filter(Boolean))];
   const sel = document.getElementById('recipeCatFilter');
   const curVal = sel.value;
   sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}" ${c===curVal?'selected':''}>${esc(c)}</option>`).join('');
-  const list = DB.recipes.filter(r =>
+
+  let list = DB.recipes.filter(r =>
     (r.name.toLowerCase().includes(q) || (r.cat||'').toLowerCase().includes(q)) &&
     (!cat || r.cat === cat)
-  );
-  const grid = document.getElementById('recipeGrid');
-  if (!list.length) { grid.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1">No recipes yet. Click "+ New Recipe"</div>'; return; }
-  grid.innerHTML = list.map(r => {
-    const cost = recipeCostPerServing(r);
-    const fp = r.price ? ((cost/r.price)*100).toFixed(0) : null;
-    return `<div class="recipe-card" onclick="openDetailModal('${r.id}')">
-      <h3>${esc(r.name)}</h3>
-      ${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : ''}
-      ${r.desc ? `<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4">${esc(r.desc).slice(0,80)}${r.desc.length>80?'…':''}</div>` : ''}
-      <div class="rc-meta">
-        <span>🍶 Yield: ${r.yield || '—'}</span>
-        <span>👤 x${r.serving}</span>
-        ${fp ? `<span>📊 FC: ${fp}%</span>` : ''}
-      </div>
-      <div class="rc-cost">฿${cost.toFixed(2)}/serving</div>
-    </div>`;
-  }).join('');
+  ).map(r => ({ ...r, _cps: recipeCostPerServing(r) }));
+
+  list.sort((a, b) => {
+    let va = a[sortRec.f] ?? '', vb = b[sortRec.f] ?? '';
+    if (typeof va === 'string') return va.localeCompare(vb, 'th') * sortRec.d;
+    return (va - vb) * sortRec.d;
+  });
+
+  const el = document.getElementById('recipeTable');
+  if (!list.length) {
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">No recipes yet. Click "+ New Recipe"</div>';
+    return;
+  }
+  el.innerHTML = `<table class="data-table">
+    <thead><tr>
+      ${thRec('Name','name')}
+      ${thRec('Category','cat')}
+      ${thRec('Yield','yield')}
+      ${thRec('Serving','serving')}
+      ${thRec('Cost/Serving','_cps')}
+      ${thRec('Sell Price','price')}
+      ${thRec('Food Cost %','_fc')}
+      <th class="td-act"></th>
+    </tr></thead>
+    <tbody>
+      ${list.map(r => {
+        const fc = r.price ? ((r._cps / r.price) * 100).toFixed(1) + '%' : '—';
+        const fcColor = r.price ? (r._cps/r.price < 0.35 ? 'var(--accent2)' : r._cps/r.price < 0.5 ? 'var(--warn)' : 'var(--danger)') : 'var(--muted)';
+        return `<tr style="cursor:pointer" onclick="openDetailModal('${r.id}')">
+          <td class="td-name">${esc(r.name)}</td>
+          <td>${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : '<span class="td-muted">—</span>'}</td>
+          <td class="td-muted">${r.yield || '—'}</td>
+          <td class="td-muted">${r.serving}</td>
+          <td class="td-cost">฿${r._cps.toFixed(2)}</td>
+          <td class="td-muted">${r.price ? '฿'+r.price.toFixed(2) : '—'}</td>
+          <td style="color:${fcColor};font-weight:700">${fc}</td>
+          <td class="td-act" onclick="event.stopPropagation()">
+            <button class="btn-icon btn-sm" title="Edit" onclick="openRecipeModal('${r.id}')">✏️</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
 }
 
 // ═══════════════════════════════════════════════
