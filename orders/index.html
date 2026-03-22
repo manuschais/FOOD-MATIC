@@ -336,8 +336,15 @@ main{flex:1;padding:14px;max-width:860px;width:100%;margin:0 auto}
 <div class="modal-overlay" id="recipeDetailModal">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <h2 id="rdTitle" style="font-size:16px"></h2>
+      <h2 id="rdTitle" style="font-size:16px;flex:1"></h2>
       <button class="modal-close" onclick="closeRecipeDetail()">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;background:var(--surface2);border-radius:8px;padding:8px 12px">
+      <span style="font-size:13px;color:var(--muted)">จำนวน Serving</span>
+      <button onclick="document.getElementById('rdQty').value=Math.max(1,+document.getElementById('rdQty').value-1);renderRecipeDetailBody(+document.getElementById('rdQty').value)" style="background:var(--surface);border:1px solid var(--border);color:var(--text);width:32px;height:32px;padding:0;font-size:18px;border-radius:6px">−</button>
+      <input id="rdQty" type="number" min="1" value="1" oninput="renderRecipeDetailBody(+this.value||1)" style="width:60px;text-align:center;font-size:18px;font-weight:800;padding:4px" />
+      <button onclick="document.getElementById('rdQty').value=+document.getElementById('rdQty').value+1;renderRecipeDetailBody(+document.getElementById('rdQty').value)" style="background:var(--surface);border:1px solid var(--border);color:var(--text);width:32px;height:32px;padding:0;font-size:18px;border-radius:6px">+</button>
+      <span style="font-size:12px;color:var(--accent2);margin-left:4px">ปรับได้เอง</span>
     </div>
     <div id="rdBody"></div>
     <div class="modal-footer">
@@ -748,7 +755,7 @@ function renderKitchen() {
         <span class="status-pill s-kitchen">WALK-IN</span>
       </div>
       <div class="oc-items" style="font-size:14px;font-weight:600">
-        ${o.items.map(i=>`<span onclick="showRecipeDetail('${i.menuId}')" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
+        ${o.items.map(i=>`<span onclick="showRecipeDetail('${i.menuId}',${i.qty})" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
       <div class="oc-actions">
         <button class="btn-success" onclick="setOrderStatus('${o.id}','done');renderKitchen()">✓ Done / Served</button>
@@ -780,7 +787,7 @@ function renderKitchen() {
             const ex=acc.find(a=>a.menuId===i.menuId);
             ex ? ex.qty+=i.qty : acc.push({...i});
             return acc;
-          },[]).map(i=>`<span onclick="showRecipeDetail('${i.menuId}')" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--purple);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
+          },[]).map(i=>`<span onclick="showRecipeDetail('${i.menuId}',${i.qty})" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--purple);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px">Orders: ${batch.map(o=>esc(o.no)).join(', ')}</div>
       <div class="oc-actions">
@@ -964,7 +971,10 @@ function doRestore(e) {
 // ═══════════════════════════════════
 // RECIPE DETAIL
 // ═══════════════════════════════════
-function showRecipeDetail(menuId) {
+let _rdRecipe = null, _rdIngs = [], _rdBase = 0;
+
+function showRecipeDetail(menuId, qty) {
+  qty = parseInt(qty) || 1;
   const menu = ODB.menus.find(m => m.id === menuId);
   if (!menu) return;
   const allRecipes = loadRecipes();
@@ -980,33 +990,42 @@ function showRecipeDetail(menuId) {
     return;
   }
 
-  // load ingredients list from BEVE-MATIC
   let beveDB = {};
   try { beveDB = JSON.parse(localStorage.getItem('foodmatic_v1') || '{}'); } catch(e) {}
-  const ings = beveDB.ingredients || [];
+  _rdIngs = beveDB.ingredients || [];
+  _rdRecipe = r;
+  _rdBase = r.yield || (r.ingredients||[]).reduce((s,ri) => s + (ri.amount||0), 0);
 
-  const totalAmt = (r.ingredients||[]).reduce((s,ri) => s + (ri.amount||0), 0);
-  const base = r.yield || totalAmt;
+  document.getElementById('rdQty').value = qty;
+  renderRecipeDetailBody(qty);
+  document.getElementById('recipeDetailModal').classList.add('open');
+}
 
+function renderRecipeDetailBody(qty) {
+  const r = _rdRecipe;
+  const base = _rdBase;
   document.getElementById('rdBody').innerHTML = `
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
       ${r.cat ? `<span class="status-pill s-pending">${esc(r.cat)}</span>` : ''}
-      ${r.yield ? `<span class="status-pill s-done">Yield: ${r.yield}</span>` : ''}
-      <span class="status-pill s-kitchen">×${r.serving||1} serving</span>
+      ${r.yield ? `<span class="status-pill s-done">1 serving = ${r.yield}</span>` : ''}
+      ${qty > 1 ? `<span class="status-pill" style="background:#0d2a1a;color:var(--accent2)">×${qty} servings → ${base ? (base*qty).toFixed(0)+' '+((r.ingredients||[])[0]?.unit||'') : ''}</span>` : ''}
     </div>
     ${r.desc ? `<div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;white-space:pre-line">${esc(r.desc)}</div>` : ''}
-    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Ingredients</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Ingredients ${qty>1?`(×${qty} servings)`:''}</div>
     <table class="cart-table" style="margin-bottom:0">
-      <thead><tr><th>#</th><th>Ingredient</th><th>Amount</th><th>%</th></tr></thead>
+      <thead><tr><th>#</th><th>Ingredient</th><th>${qty>1?'×1 / ×'+qty:'Amount'}</th><th>%</th></tr></thead>
       <tbody>
         ${(r.ingredients||[]).length
           ? (r.ingredients||[]).map(ri => {
-              const ing = ings.find(i => i.id === ri.ingId);
+              const ing = _rdIngs.find(i => i.id === ri.ingId);
               const pct = (base && ri.amount) ? ((ri.amount/base)*100).toFixed(1)+'%' : '—';
+              const scaled = qty > 1
+                ? `<span style="color:var(--muted)">${ri.amount}</span> / <span style="color:var(--accent2);font-weight:800">${(ri.amount*qty).toFixed(1)}</span> ${ri.unit}`
+                : `<span style="color:var(--accent2)">${ri.amount} ${ri.unit}</span>`;
               return `<tr>
                 <td style="color:var(--muted);font-weight:700;width:36px">${ing ? (ing.no||'—') : '—'}</td>
                 <td style="font-weight:600">${esc(ri.name)}${ri.isBalance ? ' <span style="font-size:10px;color:var(--accent)">[BAL]</span>' : ''}</td>
-                <td style="color:var(--accent2)">${ri.amount} ${ri.unit}</td>
+                <td>${scaled}</td>
                 <td style="color:var(--muted)">${pct}</td>
               </tr>`;
             }).join('')
@@ -1014,7 +1033,6 @@ function showRecipeDetail(menuId) {
       </tbody>
     </table>
   `;
-  document.getElementById('recipeDetailModal').classList.add('open');
 }
 
 function closeRecipeDetail() { document.getElementById('recipeDetailModal').classList.remove('open'); }
