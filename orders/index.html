@@ -746,34 +746,33 @@ function renderKitchen() {
 
   // Walk-in cards
   walkins.forEach(o => {
-    html += `<div class="order-card" style="border-color:var(--warn)">
+    html += `<div class="order-card" style="border-color:var(--warn);position:relative;padding-bottom:56px">
       <div class="oc-header">
         <div>
           <div class="oc-no">${esc(o.no)}</div>
           <div style="font-size:11px;color:var(--muted)">${fmtDateTime(o.createdAt)} ${o.note?'· '+esc(o.note):''}</div>
         </div>
-        <span class="status-pill s-kitchen">WALK-IN</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn-ghost btn-sm" onclick="showReceipt('${o.id}')">🧾</button>
+          <span class="status-pill s-kitchen">WALK-IN</span>
+        </div>
       </div>
       <div class="oc-items" style="font-size:14px;font-weight:600">
         ${o.items.map(i=>`<span onclick="showRecipeDetail('${i.menuId}',${i.qty})" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
-      <div class="oc-actions">
-        <button class="btn-success" onclick="setOrderStatus('${o.id}','done');renderKitchen()">✓ Done / Served</button>
-        <button class="btn-ghost btn-sm" onclick="showReceipt('${o.id}')">🧾 Slip</button>
-      </div>
+      <button class="btn-success" onclick="setOrderStatus('${o.id}','done');renderKitchen()" style="position:absolute;bottom:12px;right:12px;padding:8px 18px;font-size:15px">✓ Done</button>
     </div>`;
   });
 
   // LOT batch cards (grouped by date)
   lotDates.forEach(date => {
     const batch = orders.filter(o=>o.type==='lot'&&o.deliverDate===date);
-    // combine items
     const combined = {};
     batch.forEach(o => o.items.forEach(i => {
       combined[i.name] = (combined[i.name]||0) + i.qty;
     }));
     const batchTotal = batch.reduce((s,o)=>s+o.total,0);
-    html += `<div class="order-card" style="border-color:var(--purple)">
+    html += `<div class="order-card" style="border-color:var(--purple);position:relative;padding-bottom:56px">
       <div class="oc-header">
         <div>
           <div class="oc-no" style="color:var(--purple)">LOT BATCH</div>
@@ -790,9 +789,8 @@ function renderKitchen() {
           },[]).map(i=>`<span onclick="showRecipeDetail('${i.menuId}',${i.qty})" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--purple);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px">Orders: ${batch.map(o=>esc(o.no)).join(', ')}</div>
-      <div class="oc-actions">
-        <button class="btn-success" onclick="markBatchDone('${date}');renderKitchen()">✓ Batch Done</button>
-      </div>
+      <button class="btn-success" onclick="markBatchDone('${date}');renderKitchen()" style="position:absolute;bottom:12px;right:12px;padding:8px 18px;font-size:15px">✓ Done</button>
+    </div>`;
     </div>`;
   });
 
