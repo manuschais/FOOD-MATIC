@@ -332,6 +332,20 @@ main{flex:1;padding:14px;max-width:860px;width:100%;margin:0 auto}
 </div>
 
 <!-- print area -->
+<!-- ── RECIPE DETAIL MODAL ── -->
+<div class="modal-overlay" id="recipeDetailModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2 id="rdTitle" style="font-size:16px"></h2>
+      <button class="modal-close" onclick="closeRecipeDetail()">✕</button>
+    </div>
+    <div id="rdBody"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeRecipeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="printArea"></div>
 <div id="toast"></div>
 
@@ -734,7 +748,7 @@ function renderKitchen() {
         <span class="status-pill s-kitchen">WALK-IN</span>
       </div>
       <div class="oc-items" style="font-size:14px;font-weight:600">
-        ${o.items.map(i=>`${esc(i.name)} <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
+        ${o.items.map(i=>`<span onclick="showRecipeDetail('${i.menuId}')" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
       <div class="oc-actions">
         <button class="btn-success" onclick="setOrderStatus('${o.id}','done');renderKitchen()">✓ Done / Served</button>
@@ -762,7 +776,11 @@ function renderKitchen() {
         <span class="status-pill" style="background:#1e0d3a;color:var(--purple)">BATCH</span>
       </div>
       <div class="oc-items" style="font-size:14px;font-weight:600">
-        ${Object.entries(combined).map(([name,qty])=>`${esc(name)} <span style="color:var(--purple);font-size:16px;font-weight:800">×${qty}</span>`).join('<br>')}
+        ${batch.flatMap(o=>o.items).reduce((acc,i)=>{
+            const ex=acc.find(a=>a.menuId===i.menuId);
+            ex ? ex.qty+=i.qty : acc.push({...i});
+            return acc;
+          },[]).map(i=>`<span onclick="showRecipeDetail('${i.menuId}')" style="cursor:pointer;border-bottom:1px dashed var(--border)">${esc(i.name)}</span> <span style="color:var(--purple);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:6px">Orders: ${batch.map(o=>esc(o.no)).join(', ')}</div>
       <div class="oc-actions">
@@ -938,6 +956,64 @@ function doRestore(e) {
   reader.readAsText(file);
   e.target.value = '';
 }
+
+// ═══════════════════════════════════
+// RECIPE DETAIL
+// ═══════════════════════════════════
+function showRecipeDetail(menuId) {
+  const menu = ODB.menus.find(m => m.id === menuId);
+  if (!menu) return;
+  const allRecipes = loadRecipes();
+  const r = allRecipes.find(r => r.id === menu.recipeId);
+
+  document.getElementById('rdTitle').innerHTML =
+    `${menu.code ? `<span style="font-family:monospace;color:var(--accent);letter-spacing:2px;margin-right:8px">${esc(menu.code)}</span>` : ''}${esc(menu.name)}`;
+
+  if (!r) {
+    document.getElementById('rdBody').innerHTML =
+      `<div style="color:var(--muted);text-align:center;padding:20px">Recipe not found in BEVE-MATIC data</div>`;
+    document.getElementById('recipeDetailModal').classList.add('open');
+    return;
+  }
+
+  // load ingredients list from BEVE-MATIC
+  let beveDB = {};
+  try { beveDB = JSON.parse(localStorage.getItem('foodmatic_v1') || '{}'); } catch(e) {}
+  const ings = beveDB.ingredients || [];
+
+  const totalAmt = (r.ingredients||[]).reduce((s,ri) => s + (ri.amount||0), 0);
+  const base = r.yield || totalAmt;
+
+  document.getElementById('rdBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      ${r.cat ? `<span class="status-pill s-pending">${esc(r.cat)}</span>` : ''}
+      ${r.yield ? `<span class="status-pill s-done">Yield: ${r.yield}</span>` : ''}
+      <span class="status-pill s-kitchen">×${r.serving||1} serving</span>
+    </div>
+    ${r.desc ? `<div style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;white-space:pre-line">${esc(r.desc)}</div>` : ''}
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Ingredients</div>
+    <table class="cart-table" style="margin-bottom:0">
+      <thead><tr><th>#</th><th>Ingredient</th><th>Amount</th><th>%</th></tr></thead>
+      <tbody>
+        ${(r.ingredients||[]).length
+          ? (r.ingredients||[]).map(ri => {
+              const ing = ings.find(i => i.id === ri.ingId);
+              const pct = (base && ri.amount) ? ((ri.amount/base)*100).toFixed(1)+'%' : '—';
+              return `<tr>
+                <td style="color:var(--muted);font-weight:700;width:36px">${ing ? (ing.no||'—') : '—'}</td>
+                <td style="font-weight:600">${esc(ri.name)}${ri.isBalance ? ' <span style="font-size:10px;color:var(--accent)">[BAL]</span>' : ''}</td>
+                <td style="color:var(--accent2)">${ri.amount} ${ri.unit}</td>
+                <td style="color:var(--muted)">${pct}</td>
+              </tr>`;
+            }).join('')
+          : '<tr><td colspan="4" style="color:var(--muted)">No ingredients recorded</td></tr>'}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('recipeDetailModal').classList.add('open');
+}
+
+function closeRecipeDetail() { document.getElementById('recipeDetailModal').classList.remove('open'); }
 
 // ═══════════════════════════════════
 // UTILS
