@@ -407,6 +407,10 @@
       <label>Cost per Serving (฿) *</label>
       <input id="oh-cost" type="number" placeholder="5.00" min="0" step="0.01" />
     </div>
+    <div class="field" style="margin-top:10px">
+      <label>Detail / Notes</label>
+      <textarea id="oh-notes" rows="3" placeholder="e.g. ค่าแรง 2 คน × 300฿/วัน ÷ 120 แก้ว/วัน = 5฿/แก้ว"></textarea>
+    </div>
     <div class="modal-footer">
       <button class="btn-ghost" onclick="closeOHModal()">Cancel</button>
       <button class="btn-primary" onclick="saveOH()">Save</button>
@@ -622,9 +626,11 @@ function openOHModal(id) {
     const oh = DB.overheads.find(o => o.id === id);
     document.getElementById('oh-name').value = oh.name;
     document.getElementById('oh-cost').value = oh.cost;
+    document.getElementById('oh-notes').value = oh.notes || '';
   } else {
     document.getElementById('oh-name').value = '';
     document.getElementById('oh-cost').value = '';
+    document.getElementById('oh-notes').value = '';
   }
   document.getElementById('ohModal').classList.add('open');
 }
@@ -635,12 +641,13 @@ function saveOH() {
   const cost = parseFloat(document.getElementById('oh-cost').value);
   if (!name) { toast('Please enter overhead name', 'err'); return; }
   if (isNaN(cost) || cost < 0) { toast('Please enter a valid cost', 'err'); return; }
+  const notes = document.getElementById('oh-notes').value.trim();
   if (editOHId) {
     const idx = DB.overheads.findIndex(o => o.id === editOHId);
-    DB.overheads[idx] = { ...DB.overheads[idx], name, cost };
+    DB.overheads[idx] = { ...DB.overheads[idx], name, cost, notes };
     toast('Updated');
   } else {
-    DB.overheads.push({ id: uid(), name, cost });
+    DB.overheads.push({ id: uid(), name, cost, notes });
     toast('Overhead added', 'ok');
   }
   save(); closeOHModal(); renderOverheads();
@@ -663,12 +670,14 @@ function renderOverheads() {
     <thead><tr>
       <th>Name</th>
       <th>Cost / Serving (฿)</th>
+      <th>Detail / Notes</th>
       <th class="td-act"></th>
     </tr></thead>
     <tbody>
       ${DB.overheads.map(o => `<tr>
         <td class="td-name">${esc(o.name)}</td>
         <td class="td-cost">฿${o.cost.toFixed(2)}</td>
+        <td style="color:var(--muted);font-size:12px;line-height:1.5">${o.notes ? esc(o.notes) : '<span style="opacity:.4">—</span>'}</td>
         <td class="td-act">
           <button class="btn-icon btn-sm" onclick="openOHModal('${o.id}')">✏️</button>
           <button class="btn-icon btn-sm" onclick="deleteOH('${o.id}')">🗑️</button>
@@ -677,7 +686,7 @@ function renderOverheads() {
       <tr style="background:var(--surface2)">
         <td style="font-weight:700">Total</td>
         <td class="td-cost" style="font-size:15px">฿${total.toFixed(2)}</td>
-        <td></td>
+        <td></td><td></td>
       </tr>
     </tbody>
   </table>`;
