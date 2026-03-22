@@ -20,7 +20,7 @@
 
 ```bash
 # Clone and open
-git clone https://github.com/YOUR_USERNAME/FOOD-MATIC.git
+git clone https://github.com/manuschais/FOOD-MATIC.git
 cd FOOD-MATIC
 open index.html   # or double-click
 ```
