@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ORDER-MATIC</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#23273a;--border:#2e3250;
+  --accent:#4f8ef7;--accent2:#34d399;--warn:#f59e0b;--danger:#ef4444;
+  --purple:#a78bfa;--text:#e2e8f0;--muted:#7c8db5;
+  --radius:10px;--shadow:0 4px 24px rgba(0,0,0,.4);
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;min-height:100vh}
+button{cursor:pointer;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:600;transition:opacity .15s,transform .1s}
+button:active{transform:scale(.97)}
+button:hover{opacity:.88}
+input,select,textarea{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:14px;width:100%;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+
+/* layout */
+#app{display:flex;flex-direction:column;min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px}
+header h1{font-size:19px;font-weight:900;letter-spacing:-.5px}
+header h1 span{color:var(--accent)}
+.nav-tabs{display:flex;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);padding:0 12px;gap:2px}
+.nav-tab{padding:10px 14px;background:none;color:var(--muted);border-radius:0;border-bottom:2px solid transparent;font-size:13px;white-space:nowrap}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+main{flex:1;padding:14px;max-width:860px;width:100%;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* buttons */
+.btn-primary{background:var(--accent);color:#fff}
+.btn-success{background:var(--accent2);color:#0d1117}
+.btn-warn{background:var(--warn);color:#0d1117}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-purple{background:var(--purple);color:#0d1117}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{background:none;color:var(--muted);padding:4px 8px;font-size:16px}
+.btn-icon:hover{color:var(--danger)}
+.btn-full{width:100%;padding:14px;font-size:16px}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.col{flex:1;min-width:140px}
+.col-2{flex:2;min-width:180px}
+.field{margin-bottom:10px}
+
+/* stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat-card .num{font-size:28px;font-weight:800}
+.stat-card .lbl{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* menu grid for walk-in */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.menu-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 10px;text-align:center;cursor:pointer;transition:border-color .2s,transform .1s;position:relative;user-select:none}
+.menu-btn:active{transform:scale(.97)}
+.menu-btn:hover{border-color:var(--accent)}
+.menu-btn.in-cart{border-color:var(--accent2);background:#0d2e20}
+.menu-btn .mb-code{font-size:10px;color:var(--muted);font-family:monospace;letter-spacing:1px}
+.menu-btn .mb-name{font-size:13px;font-weight:700;margin:4px 0}
+.menu-btn .mb-price{font-size:13px;color:var(--accent2)}
+.menu-btn .mb-cat{font-size:10px;color:var(--muted)}
+.qty-badge{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* cart */
+.cart-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
+.cart-table th{background:var(--surface2);color:var(--muted);padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.cart-table td{padding:7px 10px;border-bottom:1px solid var(--border)}
+.cart-table tr:last-child td{border:none}
+
+/* order cards */
+.order-cards{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.order-card .oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.order-card .oc-no{font-family:monospace;font-size:15px;font-weight:800;color:var(--accent);letter-spacing:1px}
+.order-card .oc-time{font-size:11px;color:var(--muted)}
+.order-card .oc-items{font-size:13px;color:var(--text);line-height:1.8}
+.order-card .oc-total{font-weight:700;color:var(--accent2);margin-top:6px;font-size:15px}
+.order-card .oc-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.status-pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.s-pending{background:#1e3a6e;color:var(--accent)}
+.s-kitchen{background:#3a2a0d;color:var(--warn)}
+.s-done{background:#0d3a2a;color:var(--accent2)}
+.s-cancelled{background:#3a1010;color:var(--danger)}
+
+/* data table */
+.data-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);margin-top:6px}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:var(--surface2);color:var(--muted);padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.data-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tbody tr:last-child td{border:none}
+.data-table tbody tr:hover td{background:var(--surface2)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow-y:auto;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:560px;padding:20px;margin:auto;box-shadow:var(--shadow)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-header h2{font-size:17px}
+.modal-close{background:none;color:var(--muted);font-size:20px;padding:2px 8px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* receipt */
+.receipt{background:#fff;color:#111;padding:20px;border-radius:8px;font-family:'Courier New',monospace;font-size:13px;max-width:320px;margin:0 auto}
+.receipt h2{text-align:center;font-size:16px;margin-bottom:4px}
+.receipt .r-sub{text-align:center;font-size:11px;color:#555;margin-bottom:12px}
+.receipt .r-divider{border:none;border-top:1px dashed #bbb;margin:8px 0}
+.receipt .r-row{display:flex;justify-content:space-between;padding:2px 0;font-size:12px}
+.receipt .r-total{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-top:4px;border-top:2px solid #111;padding-top:4px}
+.receipt .r-note{font-size:11px;color:#555;margin-top:6px}
+
+/* toast */
+#toast{position:fixed;bottom:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.toast-msg{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;box-shadow:var(--shadow);animation:slideUp .2s ease}
+.toast-msg.ok{border-color:var(--accent2);color:var(--accent2)}
+.toast-msg.err{border-color:var(--danger);color:var(--danger)}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* print */
+@media print{
+  body{background:#fff;color:#111}
+  #app{display:none}
+  #printArea{display:block!important}
+}
+#printArea{display:none}
+
+/* mobile */
+@media(max-width:600px){
+  main{padding:10px}
+  .menu-grid{grid-template-columns:repeat(3,1fr)}
+  .row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <a href="../index.html" style="color:var(--muted);font-size:18px;padding:4px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border)">‹</a>
+  <div>
+    <h1>ORDER<span>-MATIC</span></h1>
+    <div style="font-size:10px;color:var(--muted)">Order Management</div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+    <button class="btn-ghost btn-sm" onclick="doBackup()">⬆ Backup</button>
+    <label style="margin:0">
+      <button class="btn-ghost btn-sm" onclick="document.getElementById('restoreFile').click()">↩ Restore</button>
+      <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(event)">
+    </label>
+  </div>
+</header>
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('walkin')">🛒 Walk-in</button>
+  <button class="nav-tab" onclick="showPage('preorder')">📦 Pre-order</button>
+  <button class="nav-tab" onclick="showPage('kitchen')">👨‍🍳 Kitchen</button>
+  <button class="nav-tab" onclick="showPage('sales')">📊 Sales</button>
+  <button class="nav-tab" onclick="showPage('menu')">⚙️ Menu</button>
+</nav>
+<main>
+
+<!-- ── WALK-IN ── -->
+<div id="page-walkin" class="page active">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="stat-card"><div class="num" style="color:var(--accent)" id="wi-today-count">0</div><div class="lbl">Orders Today</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--accent2)" id="wi-today-rev">0</div><div class="lbl">Revenue (฿)</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--warn)" id="wi-kitchen-count">0</div><div class="lbl">In Kitchen</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="wi-menu-search" placeholder="Search menu..." style="flex:1;min-width:140px" oninput="renderMenuGrid()">
+    <select id="wi-cat-filter" onchange="renderMenuGrid()" style="width:130px">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="menu-grid" id="menuGrid"></div>
+  <div id="wi-cart-section" style="display:none">
+    <div class="card" style="margin-top:4px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent)">🛒 Order</div>
+      <table class="cart-table"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th></th></tr></thead>
+        <tbody id="cartBody"></tbody>
+      </table>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <div class="field col" style="margin:0"><label>Table / Note</label><input id="wi-note" placeholder="Table 3, takeaway..."/></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:18px;font-weight:800">Total: <span style="color:var(--accent2)" id="cartTotal">฿0</span></div>
+        <button class="btn-ghost btn-sm" onclick="clearCart()">Clear</button>
+      </div>
+      <button class="btn-success btn-full" onclick="sendToKitchen()">📤 Send to Kitchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRE-ORDER ── -->
+<div id="page-preorder" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2 style="font-size:17px">Pre-orders (LOT)</h2>
+    <button class="btn-primary btn-sm" onclick="openLotModal()">+ New Order</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input type="text" id="lot-search" placeholder="Search customer, order no..." style="flex:1;min-width:160px" oninput="renderLotOrders()">
+    <input type="date" id="lot-date-filter" onchange="renderLotOrders()" style="width:150px">
+    <select id="lot-status-filter" onchange="renderLotOrders()" style="width:130px">
+      <option value="">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="kitchen">In Kitchen</option>
+      <option value="done">Done</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <div class="field col" style="margin:0"><label>Batch by Delivery Date</label><input type="date" id="lot-batch-date"/></div>
+    <div style="display:flex;align-items:flex-end"><button class="btn-warn btn-sm" onclick="batchToKitchen()">🔥 Send Batch to Kitchen</button></div>
+  </div>
+  <div id="lotOrderCards" class="order-cards"></div>
+</div>
+
+<!-- ── KITCHEN ── -->
+<div id="page-kitchen" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2 style="font-size:17px">Kitchen Queue</h2>
+    <div style="display:flex;gap:6px">
+      <button class="btn-ghost btn-sm" onclick="renderKitchen()">🔄 Refresh</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn-sm" id="k-tab-all" onclick="setKTab('all')" style="background:var(--accent);color:#fff">All</button>
+    <button class="btn-ghost btn-sm" id="k-tab-walkin" onclick="setKTab('walkin')">Walk-in</button>
+    <button class="btn-ghost btn-sm" id="k-tab-lot" onclick="setKTab('lot')">LOT Batches</button>
+  </div>
+  <div id="kitchenCards" class="order-cards"></div>
+</div>
+
+<!-- ── SALES ── -->
+<div id="page-sales" class="page">
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end">
+    <div class="field col" style="margin:0"><label>From</label><input type="date" id="sales-from"/></div>
+    <div class="field col" style="margin:0"><label>To</label><input type="date" id="sales-to"/></div>
+    <button class="btn-primary btn-sm" onclick="renderSales()" style="align-self:flex-end">Filter</button>
+    <button class="btn-ghost btn-sm" onclick="exportCSV()" style="align-self:flex-end">⬇ Export CSV</button>
+  </div>
+  <div class="stat-grid" id="salesStats"></div>
+  <div class="data-table-wrap"><table class="data-table" id="salesTable">
+    <thead><tr>
+      <th>Order No.</th><th>Type</th><th>Date</th><th>Customer</th><th>Delivery</th>
+      <th>Items</th><th>Total (฿)</th><th>Status</th>
+    </tr></thead>
+    <tbody id="salesBody"></tbody>
+  </table></div>
+</div>
+
+<!-- ── MENU SETUP ── -->
+<div id="page-menu" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div>
+      <h2 style="font-size:17px">Menu Setup</h2>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">เลือก recipe ที่เปิดขาย — ตั้งราคาขายได้</div>
+    </div>
+    <button class="btn-ghost btn-sm" onclick="syncRecipes()">🔄 Sync Recipes</button>
+  </div>
+  <div id="menuSetupList"></div>
+</div>
+
+</main>
+</div>
+
+<!-- ── LOT MODAL ── -->
+<div class="modal-overlay" id="lotModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h2 id="lotModalTitle">New Pre-order</h2>
+      <button class="modal-close" onclick="closeLotModal()">✕</button>
+    </div>
+    <div class="row">
+      <div class="col-2 field"><label>Customer Name *</label><input id="lot-customer" placeholder="ชื่อลูกค้า"/></div>
+      <div class="col field"><label>Phone</label><input id="lot-phone" placeholder="0812345678"/></div>
+    </div>
+    <div class="row">
+      <div class="col field"><label>Delivery Date *</label><input type="date" id="lot-deliver-date"/></div>
+      <div class="col field"><label>Delivery Time</label><input type="time" id="lot-deliver-time" value="17:00"/></div>
+    </div>
+    <div style="margin:12px 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Items</div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="col-2">
+        <select id="lot-item-pick"><option value="">-- Select Menu Item --</option></select>
+      </div>
+      <div class="col">
+        <input id="lot-item-qty" type="number" placeholder="Qty" value="1" min="1"/>
+      </div>
+      <div style="display:flex;align-items:center">
+        <button class="btn-success btn-sm" onclick="addLotItem()">Add</button>
+      </div>
+    </div>
+    <table class="cart-table" id="lotItemTable">
+      <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th></th></tr></thead>
+      <tbody id="lotItemBody"></tbody>
+    </table>
+    <div class="field" style="margin-top:10px"><label>Note</label><textarea id="lot-note" rows="2" placeholder="หมายเหตุ..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeLotModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveLotOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECEIPT MODAL ── -->
+<div class="modal-overlay" id="receiptModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <h2>Receipt / Slip</h2>
+      <button class="modal-close" onclick="closeReceipt()">✕</button>
+    </div>
+    <div id="receiptContent"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeReceipt()">Close</button>
+      <button class="btn-primary" onclick="printReceipt()">🖨 Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- print area -->
+<div id="printArea"></div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════
+const ODB = {
+  menus:  [],   // [{id,recipeId,code,name,cat,price,active}]
+  orders: [],   // [{id,no,type,customer,phone,deliverDate,deliverTime,items,total,status,note,createdAt}]
+};
+
+function loadODB() {
+  try {
+    const r = localStorage.getItem('foodmatic_orders_v1');
+    if (r) Object.assign(ODB, JSON.parse(r));
+  } catch(e) {}
+}
+function saveODB() { localStorage.setItem('foodmatic_orders_v1', JSON.stringify(ODB)); }
+
+// read recipes from BEVE-MATIC
+function loadRecipes() {
+  try {
+    const r = localStorage.getItem('foodmatic_v1');
+    return r ? (JSON.parse(r).recipes || []) : [];
+  } catch(e) { return []; }
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) { return d ? d.replace(/-/g,'/') : '—'; }
+function fmtTime(d) { return new Date(d).toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'}); }
+function fmtDateTime(d) { return new Date(d).toLocaleString('th',{dateStyle:'short',timeStyle:'short'}); }
+
+function genNo(type) {
+  const prefix = type === 'walkin' ? 'W' : 'L';
+  const dt = today().replace(/-/g,'').slice(2); // YYMMDD
+  const same = ODB.orders.filter(o => o.type === type && o.createdAt.startsWith(today()));
+  const seq = String(same.length + 1).padStart(3,'0');
+  return `${prefix}${dt}-${seq}`;
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+let kTab = 'all';
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent.includes(id==='walkin'?'Walk':id==='preorder'?'Pre':id==='kitchen'?'Kitchen':id==='sales'?'Sales':'Menu'))
+      t.classList.add('active');
+  });
+  if (id==='walkin')   { renderMenuGrid(); renderWalkinStats(); }
+  if (id==='preorder') renderLotOrders();
+  if (id==='kitchen')  renderKitchen();
+  if (id==='sales')    { initSalesDates(); renderSales(); }
+  if (id==='menu')     renderMenuSetup();
+}
+
+// ═══════════════════════════════════
+// MENU SETUP
+// ═══════════════════════════════════
+function syncRecipes() {
+  const recipes = loadRecipes();
+  let added = 0;
+  recipes.forEach(r => {
+    if (!ODB.menus.find(m => m.recipeId === r.id)) {
+      ODB.menus.push({ id: uid(), recipeId: r.id, code: r.code||'', name: r.name, cat: r.cat||'', price: r.price||0, active: false });
+      added++;
+    } else {
+      // sync name/code/cat from recipe
+      const m = ODB.menus.find(m => m.recipeId === r.id);
+      m.name = r.name; m.code = r.code||m.code; m.cat = r.cat||m.cat;
+    }
+  });
+  saveODB();
+  renderMenuSetup();
+  toast(added ? `Synced ${added} new recipe(s)` : 'Already up to date', 'ok');
+}
+
+function toggleMenu(id) {
+  const m = ODB.menus.find(m => m.id === id);
+  if (m) { m.active = !m.active; saveODB(); renderMenuSetup(); }
+}
+
+function updateMenuPrice(id, val) {
+  const m = ODB.menus.find(m => m.id === id);
+  if (m) { m.price = parseFloat(val) || 0; saveODB(); }
+}
+
+function renderMenuSetup() {
+  const el = document.getElementById('menuSetupList');
+  if (!ODB.menus.length) {
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px">
+      No recipes found. Click "🔄 Sync Recipes" to import from BEVE-MATIC</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="data-table-wrap"><table class="data-table">
+    <thead><tr><th>Active</th><th>Code</th><th>Name</th><th>Category</th><th>Price (฿)</th></tr></thead>
+    <tbody>
+    ${ODB.menus.map(m => `<tr>
+      <td><label style="margin:0;cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" ${m.active?'checked':''} onchange="toggleMenu('${m.id}')"
+          style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent2)">
+        <span style="color:${m.active?'var(--accent2)':'var(--muted)'};font-size:11px">${m.active?'ON':'OFF'}</span>
+      </label></td>
+      <td style="font-family:monospace;color:var(--accent);font-weight:700;letter-spacing:1px">${esc(m.code||'—')}</td>
+      <td style="font-weight:600">${esc(m.name)}</td>
+      <td style="color:var(--muted)">${esc(m.cat||'—')}</td>
+      <td><input type="number" value="${m.price}" min="0" step="0.5"
+        style="width:100px;padding:4px 8px;font-size:13px"
+        onchange="updateMenuPrice('${m.id}',this.value)"></td>
+    </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+// ═══════════════════════════════════
+// WALK-IN
+// ═══════════════════════════════════
+let cart = {};  // {menuId: qty}
+
+function renderMenuGrid() {
+  const q = (document.getElementById('wi-menu-search').value||'').toLowerCase();
+  const cat = document.getElementById('wi-cat-filter').value;
+
+  const cats = [...new Set(ODB.menus.filter(m=>m.active&&m.cat).map(m=>m.cat))];
+  const sel = document.getElementById('wi-cat-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All</option>' + cats.map(c=>`<option value="${c}" ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
+
+  const active = ODB.menus.filter(m => m.active &&
+    (m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q)) &&
+    (!cat || m.cat === cat));
+
+  const grid = document.getElementById('menuGrid');
+  if (!active.length) {
+    grid.innerHTML = `<div style="color:var(--muted);grid-column:1/-1;text-align:center;padding:30px">
+      ${ODB.menus.filter(m=>m.active).length ? 'No items match' : 'No active menu items — go to ⚙️ Menu tab to activate'}</div>`;
+    return;
+  }
+  grid.innerHTML = active.map(m => {
+    const qty = cart[m.id] || 0;
+    return `<div class="menu-btn ${qty?'in-cart':''}" onclick="addToCart('${m.id}')">
+      ${qty ? `<div class="qty-badge">${qty}</div>` : ''}
+      <div class="mb-code">${esc(m.code||'')}</div>
+      <div class="mb-name">${esc(m.name)}</div>
+      <div class="mb-price">฿${m.price.toFixed(0)}</div>
+      <div class="mb-cat">${esc(m.cat||'')}</div>
+    </div>`;
+  }).join('');
+  renderCart();
+}
+
+function addToCart(menuId) {
+  cart[menuId] = (cart[menuId] || 0) + 1;
+  renderMenuGrid();
+}
+
+function changeCartQty(menuId, delta) {
+  cart[menuId] = (cart[menuId] || 0) + delta;
+  if (cart[menuId] <= 0) delete cart[menuId];
+  renderMenuGrid();
+}
+
+function clearCart() { cart = {}; renderMenuGrid(); }
+
+function renderCart() {
+  const ids = Object.keys(cart);
+  const section = document.getElementById('wi-cart-section');
+  section.style.display = ids.length ? 'block' : 'none';
+  if (!ids.length) return;
+
+  let total = 0;
+  const rows = ids.map(id => {
+    const m = ODB.menus.find(m => m.id === id);
+    if (!m) return '';
+    const sub = m.price * cart[id];
+    total += sub;
+    return `<tr>
+      <td style="font-weight:600">${esc(m.name)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon btn-sm" onclick="changeCartQty('${id}',-1)" style="font-size:14px;padding:2px 6px">−</button>
+        <span style="margin:0 4px">${cart[id]}</span>
+        <button class="btn-icon btn-sm" onclick="changeCartQty('${id}',1)" style="font-size:14px;padding:2px 6px;color:var(--accent2)">+</button>
+      </td>
+      <td style="color:var(--accent2)">฿${sub.toFixed(0)}</td>
+      <td><button class="btn-icon btn-sm" onclick="delete cart['${id}'];renderMenuGrid()">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('cartBody').innerHTML = rows;
+  document.getElementById('cartTotal').textContent = '฿' + total.toFixed(0);
+}
+
+function sendToKitchen() {
+  const ids = Object.keys(cart);
+  if (!ids.length) { toast('Cart is empty', 'err'); return; }
+  const items = ids.map(id => {
+    const m = ODB.menus.find(m => m.id === id);
+    return { menuId: id, name: m.name, price: m.price, qty: cart[id] };
+  });
+  const total = items.reduce((s,i) => s + i.price*i.qty, 0);
+  const order = {
+    id: uid(), no: genNo('walkin'), type: 'walkin',
+    customer: '', phone: '', deliverDate: today(), deliverTime: '',
+    items, total, status: 'kitchen',
+    note: document.getElementById('wi-note').value.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  ODB.orders.push(order);
+  saveODB();
+  clearCart();
+  document.getElementById('wi-note').value = '';
+  renderWalkinStats();
+  toast(`Order ${order.no} sent to kitchen!`, 'ok');
+  showReceipt(order.id);
+}
+
+function renderWalkinStats() {
+  const tod = ODB.orders.filter(o => o.type==='walkin' && o.createdAt.startsWith(today()) && o.status!=='cancelled');
+  document.getElementById('wi-today-count').textContent = tod.length;
+  document.getElementById('wi-today-rev').textContent = tod.filter(o=>o.status==='done').reduce((s,o)=>s+o.total,0).toFixed(0);
+  document.getElementById('wi-kitchen-count').textContent = tod.filter(o=>o.status==='kitchen').length;
+}
+
+// ═══════════════════════════════════
+// LOT PRE-ORDERS
+// ═══════════════════════════════════
+let editLotId = null;
+let lotTempItems = [];
+
+function openLotModal(id) {
+  editLotId = id || null;
+  lotTempItems = [];
+  document.getElementById('lotModalTitle').textContent = id ? 'Edit Pre-order' : 'New Pre-order';
+  if (id) {
+    const o = ODB.orders.find(o => o.id === id);
+    document.getElementById('lot-customer').value = o.customer||'';
+    document.getElementById('lot-phone').value = o.phone||'';
+    document.getElementById('lot-deliver-date').value = o.deliverDate||'';
+    document.getElementById('lot-deliver-time').value = o.deliverTime||'17:00';
+    document.getElementById('lot-note').value = o.note||'';
+    lotTempItems = JSON.parse(JSON.stringify(o.items||[]));
+  } else {
+    ['lot-customer','lot-phone','lot-note'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('lot-deliver-date').value = today();
+    document.getElementById('lot-deliver-time').value = '17:00';
+  }
+  populateLotItemPicker();
+  renderLotItemTable();
+  document.getElementById('lotModal').classList.add('open');
+}
+function closeLotModal() { document.getElementById('lotModal').classList.remove('open'); }
+
+function populateLotItemPicker() {
+  const sel = document.getElementById('lot-item-pick');
+  const active = ODB.menus.filter(m=>m.active);
+  sel.innerHTML = '<option value="">-- Select Menu Item --</option>' +
+    active.map(m=>`<option value="${m.id}">${m.code?m.code+' - ':''}${esc(m.name)} (฿${m.price.toFixed(0)})</option>`).join('');
+}
+
+function addLotItem() {
+  const menuId = document.getElementById('lot-item-pick').value;
+  const qty = parseInt(document.getElementById('lot-item-qty').value)||1;
+  if (!menuId) { toast('Select a menu item', 'err'); return; }
+  const m = ODB.menus.find(m=>m.id===menuId);
+  const ex = lotTempItems.findIndex(i=>i.menuId===menuId);
+  if (ex>=0) lotTempItems[ex].qty += qty;
+  else lotTempItems.push({ menuId, name: m.name, price: m.price, qty });
+  document.getElementById('lot-item-qty').value = '1';
+  renderLotItemTable();
+}
+
+function removeLotItem(idx) { lotTempItems.splice(idx,1); renderLotItemTable(); }
+
+function renderLotItemTable() {
+  const total = lotTempItems.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('lotItemBody').innerHTML = lotTempItems.length
+    ? lotTempItems.map((it,i)=>`<tr>
+        <td style="font-weight:600">${esc(it.name)}</td>
+        <td>${it.qty}</td>
+        <td style="color:var(--accent2)">฿${(it.price*it.qty).toFixed(0)}</td>
+        <td><button class="btn-icon btn-sm" onclick="removeLotItem(${i})">✕</button></td>
+      </tr>`).join('') +
+      `<tr style="background:var(--surface2)"><td colspan="2" style="font-weight:700">Total</td>
+       <td style="font-weight:700;color:var(--accent2)">฿${total.toFixed(0)}</td><td></td></tr>`
+    : '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:10px">No items</td></tr>';
+}
+
+function saveLotOrder() {
+  const customer = document.getElementById('lot-customer').value.trim();
+  if (!customer) { toast('Enter customer name', 'err'); return; }
+  const deliverDate = document.getElementById('lot-deliver-date').value;
+  if (!deliverDate) { toast('Select delivery date', 'err'); return; }
+  if (!lotTempItems.length) { toast('Add at least one item', 'err'); return; }
+  const total = lotTempItems.reduce((s,i)=>s+i.price*i.qty,0);
+  const data = {
+    customer, phone: document.getElementById('lot-phone').value.trim(),
+    deliverDate, deliverTime: document.getElementById('lot-deliver-time').value,
+    items: JSON.parse(JSON.stringify(lotTempItems)), total,
+    note: document.getElementById('lot-note').value.trim(),
+  };
+  if (editLotId) {
+    const idx = ODB.orders.findIndex(o=>o.id===editLotId);
+    ODB.orders[idx] = { ...ODB.orders[idx], ...data };
+    toast('Order updated');
+  } else {
+    ODB.orders.push({ id:uid(), no:genNo('lot'), type:'lot', status:'pending', createdAt:new Date().toISOString(), ...data });
+    toast('Pre-order saved', 'ok');
+  }
+  saveODB(); closeLotModal(); renderLotOrders();
+}
+
+function batchToKitchen() {
+  const date = document.getElementById('lot-batch-date').value;
+  if (!date) { toast('Select a delivery date', 'err'); return; }
+  const pending = ODB.orders.filter(o=>o.type==='lot'&&o.deliverDate===date&&o.status==='pending');
+  if (!pending.length) { toast(`No pending orders for ${fmtDate(date)}`, 'err'); return; }
+  pending.forEach(o=>o.status='kitchen');
+  saveODB(); renderLotOrders();
+  toast(`${pending.length} order(s) sent to kitchen for ${fmtDate(date)}`, 'ok');
+}
+
+function renderLotOrders() {
+  const q = (document.getElementById('lot-search').value||'').toLowerCase();
+  const df = document.getElementById('lot-date-filter').value;
+  const sf = document.getElementById('lot-status-filter').value;
+  let list = ODB.orders.filter(o => o.type==='lot' &&
+    (!q || o.customer.toLowerCase().includes(q) || o.no.toLowerCase().includes(q)) &&
+    (!df || o.deliverDate===df) &&
+    (!sf || o.status===sf));
+  list.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  const el = document.getElementById('lotOrderCards');
+  if (!list.length) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px">No pre-orders found</div>'; return; }
+  el.innerHTML = list.map(o => `<div class="order-card">
+    <div class="oc-header">
+      <div>
+        <div class="oc-no">${esc(o.no)}</div>
+        <div style="font-size:13px;font-weight:600;margin-top:2px">${esc(o.customer)} ${o.phone?`· ${o.phone}`:''}</div>
+        <div style="font-size:11px;color:var(--muted)">Delivery: ${fmtDate(o.deliverDate)} ${o.deliverTime||''}</div>
+      </div>
+      <span class="status-pill s-${o.status}">${o.status.toUpperCase()}</span>
+    </div>
+    <div class="oc-items">${o.items.map(i=>`${esc(i.name)} ×${i.qty}`).join('<br>')}</div>
+    ${o.note?`<div style="font-size:12px;color:var(--muted);margin-top:4px">📝 ${esc(o.note)}</div>`:''}
+    <div class="oc-total">฿${o.total.toFixed(0)}</div>
+    <div class="oc-actions">
+      ${o.status==='pending'?`<button class="btn-warn btn-sm" onclick="setOrderStatus('${o.id}','kitchen')">→ Kitchen</button>`:''}
+      ${o.status==='kitchen'?`<button class="btn-success btn-sm" onclick="setOrderStatus('${o.id}','done')">✓ Done</button>`:''}
+      ${o.status!=='done'&&o.status!=='cancelled'?`<button class="btn-ghost btn-sm" onclick="openLotModal('${o.id}')">✏️ Edit</button>`:''}
+      ${o.status!=='done'&&o.status!=='cancelled'?`<button class="btn-danger btn-sm" onclick="cancelOrder('${o.id}')">✕ Cancel</button>`:''}
+      <button class="btn-ghost btn-sm" onclick="showReceipt('${o.id}')">🧾 Slip</button>
+    </div>
+  </div>`).join('');
+}
+
+// ═══════════════════════════════════
+// KITCHEN
+// ═══════════════════════════════════
+function setKTab(tab) {
+  kTab = tab;
+  ['all','walkin','lot'].forEach(t => {
+    const b = document.getElementById('k-tab-'+t);
+    b.className = t===tab ? 'btn-sm btn-primary' : 'btn-ghost btn-sm';
+    b.style.background = t===tab ? 'var(--accent)' : '';
+    b.style.color = t===tab ? '#fff' : '';
+  });
+  renderKitchen();
+}
+
+function renderKitchen() {
+  const orders = ODB.orders.filter(o => {
+    if (o.status !== 'kitchen') return false;
+    if (kTab === 'walkin') return o.type === 'walkin';
+    if (kTab === 'lot') return o.type === 'lot';
+    return true;
+  });
+
+  // for LOT, group by deliverDate
+  const lotDates = [...new Set(orders.filter(o=>o.type==='lot').map(o=>o.deliverDate))].sort();
+  const walkins = orders.filter(o=>o.type==='walkin').sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+
+  const el = document.getElementById('kitchenCards');
+  if (!orders.length) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">🎉 No pending kitchen jobs</div>'; return; }
+
+  let html = '';
+
+  // Walk-in cards
+  walkins.forEach(o => {
+    html += `<div class="order-card" style="border-color:var(--warn)">
+      <div class="oc-header">
+        <div>
+          <div class="oc-no">${esc(o.no)}</div>
+          <div style="font-size:11px;color:var(--muted)">${fmtDateTime(o.createdAt)} ${o.note?'· '+esc(o.note):''}</div>
+        </div>
+        <span class="status-pill s-kitchen">WALK-IN</span>
+      </div>
+      <div class="oc-items" style="font-size:14px;font-weight:600">
+        ${o.items.map(i=>`${esc(i.name)} <span style="color:var(--warn);font-size:16px;font-weight:800">×${i.qty}</span>`).join('<br>')}
+      </div>
+      <div class="oc-actions">
+        <button class="btn-success" onclick="setOrderStatus('${o.id}','done');renderKitchen()">✓ Done / Served</button>
+        <button class="btn-ghost btn-sm" onclick="showReceipt('${o.id}')">🧾 Slip</button>
+      </div>
+    </div>`;
+  });
+
+  // LOT batch cards (grouped by date)
+  lotDates.forEach(date => {
+    const batch = orders.filter(o=>o.type==='lot'&&o.deliverDate===date);
+    // combine items
+    const combined = {};
+    batch.forEach(o => o.items.forEach(i => {
+      combined[i.name] = (combined[i.name]||0) + i.qty;
+    }));
+    const batchTotal = batch.reduce((s,o)=>s+o.total,0);
+    html += `<div class="order-card" style="border-color:var(--purple)">
+      <div class="oc-header">
+        <div>
+          <div class="oc-no" style="color:var(--purple)">LOT BATCH</div>
+          <div style="font-size:13px;font-weight:600;margin-top:2px">Delivery: ${fmtDate(date)}</div>
+          <div style="font-size:11px;color:var(--muted)">${batch.length} order(s) · ฿${batchTotal.toFixed(0)}</div>
+        </div>
+        <span class="status-pill" style="background:#1e0d3a;color:var(--purple)">BATCH</span>
+      </div>
+      <div class="oc-items" style="font-size:14px;font-weight:600">
+        ${Object.entries(combined).map(([name,qty])=>`${esc(name)} <span style="color:var(--purple);font-size:16px;font-weight:800">×${qty}</span>`).join('<br>')}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">Orders: ${batch.map(o=>esc(o.no)).join(', ')}</div>
+      <div class="oc-actions">
+        <button class="btn-success" onclick="markBatchDone('${date}');renderKitchen()">✓ Batch Done</button>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function markBatchDone(date) {
+  ODB.orders.filter(o=>o.type==='lot'&&o.deliverDate===date&&o.status==='kitchen').forEach(o=>o.status='done');
+  saveODB(); renderKitchen();
+  toast(`Batch ${fmtDate(date)} done!`, 'ok');
+}
+
+// ═══════════════════════════════════
+// ORDER STATUS
+// ═══════════════════════════════════
+function setOrderStatus(id, status) {
+  const o = ODB.orders.find(o=>o.id===id);
+  if (!o) return;
+  o.status = status;
+  saveODB();
+  renderKitchen(); renderLotOrders(); renderWalkinStats();
+  toast(status==='done' ? `Order ${o.no} done ✓` : `Order ${o.no} → ${status}`);
+}
+
+function cancelOrder(id) {
+  if (!confirm('Cancel this order?')) return;
+  const o = ODB.orders.find(o=>o.id===id);
+  if (o) { o.status='cancelled'; saveODB(); renderLotOrders(); toast('Cancelled'); }
+}
+
+// ═══════════════════════════════════
+// SALES
+// ═══════════════════════════════════
+function initSalesDates() {
+  if (!document.getElementById('sales-from').value) {
+    const m = new Date(); m.setDate(1);
+    document.getElementById('sales-from').value = m.toISOString().slice(0,10);
+    document.getElementById('sales-to').value = today();
+  }
+}
+
+function renderSales() {
+  const from = document.getElementById('sales-from').value || '2000-01-01';
+  const to   = document.getElementById('sales-to').value   || today();
+  const list = ODB.orders.filter(o => {
+    const d = o.createdAt.slice(0,10);
+    return d >= from && d <= to && o.status !== 'cancelled';
+  }).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+
+  const done = list.filter(o=>o.status==='done');
+  const rev = done.reduce((s,o)=>s+o.total,0);
+  const items = done.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+i.qty,0),0);
+
+  document.getElementById('salesStats').innerHTML = `
+    <div class="stat-card"><div class="num" style="color:var(--accent)">${list.length}</div><div class="lbl">Total Orders</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--accent2)">${done.length}</div><div class="lbl">Completed</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--warn)">${rev.toFixed(0)}</div><div class="lbl">Revenue (฿)</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--purple)">${items}</div><div class="lbl">Items Sold</div></div>
+  `;
+
+  document.getElementById('salesBody').innerHTML = list.map(o => `<tr>
+    <td style="font-family:monospace;font-weight:700;color:var(--accent)">${esc(o.no)}</td>
+    <td><span class="status-pill" style="background:${o.type==='walkin'?'#1e3a1e':'#1e0d3a'};color:${o.type==='walkin'?'var(--accent2)':'var(--purple)'}">
+      ${o.type==='walkin'?'Walk-in':'LOT'}</span></td>
+    <td style="color:var(--muted);white-space:nowrap">${fmtDate(o.createdAt.slice(0,10))}</td>
+    <td>${esc(o.customer||'—')}</td>
+    <td style="color:var(--muted)">${o.type==='lot'?fmtDate(o.deliverDate):'—'}</td>
+    <td style="font-size:12px">${o.items.map(i=>`${esc(i.name)} ×${i.qty}`).join(', ')}</td>
+    <td style="color:var(--accent2);font-weight:700">฿${o.total.toFixed(0)}</td>
+    <td><span class="status-pill s-${o.status}">${o.status.toUpperCase()}</span></td>
+  </tr>`).join('') || '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">No orders found</td></tr>';
+}
+
+// ═══════════════════════════════════
+// RECEIPT
+// ═══════════════════════════════════
+function showReceipt(id) {
+  const o = ODB.orders.find(o=>o.id===id);
+  if (!o) return;
+  const html = `<div class="receipt">
+    <h2>ORDER-MATIC</h2>
+    <div class="r-sub">🧋 Beverage Order</div>
+    <hr class="r-divider">
+    <div class="r-row"><span>Order No.</span><span style="font-weight:700">${esc(o.no)}</span></div>
+    <div class="r-row"><span>Type</span><span>${o.type==='walkin'?'Walk-in':'Pre-order'}</span></div>
+    <div class="r-row"><span>Date</span><span>${fmtDate(o.createdAt.slice(0,10))} ${fmtTime(o.createdAt)}</span></div>
+    ${o.customer?`<div class="r-row"><span>Customer</span><span>${esc(o.customer)}</span></div>`:''}
+    ${o.phone?`<div class="r-row"><span>Phone</span><span>${esc(o.phone)}</span></div>`:''}
+    ${o.deliverDate&&o.type==='lot'?`<div class="r-row"><span>Delivery</span><span>${fmtDate(o.deliverDate)} ${o.deliverTime||''}</span></div>`:''}
+    <hr class="r-divider">
+    ${o.items.map(i=>`
+      <div class="r-row"><span>${esc(i.name)}</span><span></span></div>
+      <div class="r-row" style="padding-left:12px"><span>฿${i.price.toFixed(0)} × ${i.qty}</span><span>฿${(i.price*i.qty).toFixed(0)}</span></div>
+    `).join('')}
+    <hr class="r-divider">
+    <div class="r-total"><span>TOTAL</span><span>฿${o.total.toFixed(0)}</span></div>
+    ${o.note?`<div class="r-note">📝 ${esc(o.note)}</div>`:''}
+    <div style="text-align:center;margin-top:12px;font-size:10px;color:#999">Thank you!</div>
+  </div>`;
+  document.getElementById('receiptContent').innerHTML = html;
+  document.getElementById('receiptModal').classList.add('open');
+}
+
+function closeReceipt() { document.getElementById('receiptModal').classList.remove('open'); }
+
+function printReceipt() {
+  const content = document.getElementById('receiptContent').innerHTML;
+  document.getElementById('printArea').innerHTML = content;
+  window.print();
+}
+
+// ═══════════════════════════════════
+// EXPORT CSV
+// ═══════════════════════════════════
+function exportCSV() {
+  const from = document.getElementById('sales-from')?.value || '2000-01-01';
+  const to   = document.getElementById('sales-to')?.value   || today();
+  const list = ODB.orders.filter(o => {
+    const d = o.createdAt.slice(0,10);
+    return d >= from && d <= to;
+  });
+  const rows = [
+    ['Order No','Type','Date','Time','Customer','Phone','Delivery Date','Delivery Time','Items','Total','Status','Note'],
+    ...list.map(o => [
+      o.no, o.type==='walkin'?'Walk-in':'LOT',
+      o.createdAt.slice(0,10), fmtTime(o.createdAt),
+      o.customer||'', o.phone||'',
+      o.type==='lot'?o.deliverDate:'', o.type==='lot'?(o.deliverTime||''):'',
+      o.items.map(i=>`${i.name}(x${i.qty})`).join(' | '),
+      o.total.toFixed(2), o.status, o.note||''
+    ])
+  ];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `orders-${today()}.csv`;
+  a.click();
+  toast('CSV exported', 'ok');
+}
+
+// ═══════════════════════════════════
+// BACKUP / RESTORE
+// ═══════════════════════════════════
+function doBackup() {
+  const blob = new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),...ODB},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `orders-backup-${today()}.json`;
+  a.click();
+  toast('Backup saved', 'ok');
+}
+
+function doRestore(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.menus)  ODB.menus  = data.menus;
+      if (data.orders) ODB.orders = data.orders;
+      saveODB();
+      renderMenuGrid(); renderWalkinStats(); renderMenuSetup();
+      toast(`Restored: ${ODB.orders.length} orders, ${ODB.menus.length} menu items`, 'ok');
+    } catch { toast('Invalid backup file', 'err'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ═══════════════════════════════════
+// UTILS
+// ═══════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg,type=''){
+  const el=document.createElement('div');
+  el.className='toast-msg'+(type?' '+type:'');
+  el.textContent=msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+loadODB();
+renderMenuGrid();
+renderWalkinStats();
+</script>
+</body>
+</html>
