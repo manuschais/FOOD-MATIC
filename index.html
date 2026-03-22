@@ -209,6 +209,10 @@
       <button class="modal-close" onclick="closeIngModal()">✕</button>
     </div>
     <div class="row">
+      <div class="col field" style="max-width:90px">
+        <label>No. *</label>
+        <input id="ing-no" type="number" placeholder="1" min="1" step="1" />
+      </div>
       <div class="col-2 field">
         <label>Ingredient Name *</label>
         <input id="ing-name" placeholder="e.g. Espresso, Milk, Sugar" />
@@ -397,6 +401,7 @@ function openIngModal(id) {
   document.getElementById('ingModalTitle').textContent = id ? 'Edit Ingredient' : 'Add Ingredient';
   if (id) {
     const ing = DB.ingredients.find(i => i.id === id);
+    document.getElementById('ing-no').value = ing.no || '';
     document.getElementById('ing-name').value = ing.name;
     document.getElementById('ing-cat').value = ing.cat || '';
     document.getElementById('ing-qty').value = ing.qty;
@@ -406,6 +411,8 @@ function openIngModal(id) {
   } else {
     ['ing-name','ing-cat','ing-qty','ing-price','ing-notes'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('ing-unit').value = 'g';
+    const nextNo = DB.ingredients.length ? Math.max(...DB.ingredients.map(i => i.no || 0)) + 1 : 1;
+    document.getElementById('ing-no').value = nextNo;
   }
   updateIngCalcPreview();
   m.classList.add('open');
@@ -432,7 +439,12 @@ function updateIngCalcPreview() {
 function saveIngredient() {
   const name = document.getElementById('ing-name').value.trim();
   if (!name) { toast('Please enter ingredient name', 'err'); return; }
+  const no = parseInt(document.getElementById('ing-no').value);
+  if (!no || no < 1) { toast('Please enter a valid No.', 'err'); return; }
+  const duplicate = DB.ingredients.find(i => i.no === no && i.id !== editIngId);
+  if (duplicate) { toast(`No. ${no} is already used by "${duplicate.name}"`, 'err'); return; }
   const data = {
+    no,
     name,
     cat: document.getElementById('ing-cat').value.trim(),
     qty: parseFloat(document.getElementById('ing-qty').value) || 0,
@@ -445,8 +457,7 @@ function saveIngredient() {
     DB.ingredients[idx] = { ...DB.ingredients[idx], ...data };
     toast('Ingredient updated');
   } else {
-    const nextNo = DB.ingredients.length ? Math.max(...DB.ingredients.map(i => i.no || 0)) + 1 : 1;
-    DB.ingredients.push({ id: uid(), no: nextNo, ...data });
+    DB.ingredients.push({ id: uid(), ...data });
     toast('Ingredient added', 'ok');
   }
   save();
