@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -152,24 +152,25 @@
 <div id="app">
   <header>
     <a href="../index.html" style="color:var(--muted);font-size:18px;line-height:1;padding:4px 6px;border-radius:6px;background:var(--surface2);border:1px solid var(--border)" title="Back to HOME">‹</a>
+    <button id="langBtn" class="btn-ghost btn-sm" style="min-width:44px" onclick="setLang(currentLang==='en'?'th':'en')">TH</button>
     <div>
       <h1>BEVE<span>-MATIC</span></h1>
       <div style="font-size:11px;color:var(--muted)">Beverage Development Tool</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn-ghost btn-sm" onclick="exportAll()">⬇ Export JSON</button>
+      <button class="btn-ghost btn-sm" onclick="exportAll()" data-i18n="btn_export">⬇ Export JSON</button>
       <label style="margin:0">
-        <button class="btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+        <button class="btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">⬆ Import JSON</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(event)">
       </label>
     </div>
   </header>
 
   <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
-    <button class="nav-tab" onclick="showPage('ingredients')">Ingredients</button>
-    <button class="nav-tab" onclick="showPage('recipes')">Recipes</button>
-    <button class="nav-tab" onclick="showPage('overhead')">Overhead</button>
+    <button class="nav-tab active" onclick="showPage('dashboard')" data-i18n="nav_dashboard">Dashboard</button>
+    <button class="nav-tab" onclick="showPage('ingredients')" data-i18n="nav_ingredients">Ingredients</button>
+    <button class="nav-tab" onclick="showPage('recipes')" data-i18n="nav_recipes">Recipes</button>
+    <button class="nav-tab" onclick="showPage('overhead')" data-i18n="nav_overhead">Overhead</button>
   </nav>
 
   <main>
@@ -178,11 +179,11 @@
       <div class="stat-grid" id="statGrid"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="card">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Most Expensive Recipes (cost/serving)</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px" data-i18n="dash_top_cost">Most Expensive Recipes (cost/serving)</div>
           <div id="topCostList"></div>
         </div>
         <div class="card">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Ingredient Price Reference</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px" data-i18n="dash_ing_ref">Ingredient Price Reference</div>
           <div id="ingSummary"></div>
         </div>
       </div>
@@ -191,10 +192,10 @@
     <!-- ── INGREDIENTS ── -->
     <div id="page-ingredients" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h2 style="font-size:18px">Ingredients</h2>
-        <button class="btn-primary" onclick="openIngModal()">+ Add Ingredient</button>
+        <h2 style="font-size:18px" data-i18n="page_ing_title">Ingredients</h2>
+        <button class="btn-primary" onclick="openIngModal()" data-i18n="btn_add_ingredient">+ Add Ingredient</button>
       </div>
-      <input type="text" id="ingSearch" placeholder="Search ingredients..." style="margin-bottom:12px" oninput="renderIngredients()">
+      <input type="text" id="ingSearch" placeholder="Search ingredients..." style="margin-bottom:12px" oninput="renderIngredients()" data-i18n-ph="ph_search_ing">
       <div class="data-table-wrap" id="ingTable"></div>
     </div>
 
@@ -202,10 +203,10 @@
     <div id="page-overhead" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div>
-          <h2 style="font-size:18px">Overhead Preset Sets</h2>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">สร้างหลาย Set เช่น "ร้านเล็ก", "Delivery" — เลือกโหลดเข้าสูตรได้</div>
+          <h2 style="font-size:18px" data-i18n="page_oh_title">Overhead Preset Sets</h2>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px" data-i18n="page_oh_subtitle">สร้างหลาย Set เช่น "ร้านเล็ก", "Delivery" — เลือกโหลดเข้าสูตรได้</div>
         </div>
-        <button class="btn-primary" onclick="openOHSetModal()">+ New Set</button>
+        <button class="btn-primary" onclick="openOHSetModal()" data-i18n="btn_new_set">+ New Set</button>
       </div>
       <div id="ohSetList" style="margin-top:14px"></div>
     </div>
@@ -213,13 +214,13 @@
     <!-- ── RECIPES ── -->
     <div id="page-recipes" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <h2 style="font-size:18px">Recipes</h2>
-        <button class="btn-primary" onclick="openRecipeModal()">+ New Recipe</button>
+        <h2 style="font-size:18px" data-i18n="page_recipe_title">Recipes</h2>
+        <button class="btn-primary" onclick="openRecipeModal()" data-i18n="btn_new_recipe">+ New Recipe</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <input type="text" id="recipeSearch" placeholder="Search recipes..." style="flex:1;min-width:160px" oninput="renderRecipes()">
+        <input type="text" id="recipeSearch" placeholder="Search recipes..." style="flex:1;min-width:160px" oninput="renderRecipes()" data-i18n-ph="ph_search_rec">
         <select id="recipeCatFilter" onchange="renderRecipes()" style="width:140px">
-          <option value="">All Categories</option>
+          <option value="" data-i18n="tip_all_cat">All Categories</option>
         </select>
       </div>
       <div class="data-table-wrap" id="recipeTable"></div>
@@ -231,48 +232,48 @@
 <div class="modal-overlay" id="ingModal">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="ingModalTitle">Add Ingredient</h2>
+      <h2 id="ingModalTitle" data-i18n="modal_add_ing">Add Ingredient</h2>
       <button class="modal-close" onclick="closeIngModal()">✕</button>
     </div>
     <div class="row">
       <div class="col field" style="max-width:90px">
-        <label>No. *</label>
+        <label data-i18n="lbl_no">No. *</label>
         <input id="ing-no" type="number" placeholder="1" min="1" step="1" />
       </div>
       <div class="col-2 field">
-        <label>Ingredient Name *</label>
-        <input id="ing-name" placeholder="e.g. Espresso, Milk, Sugar" />
+        <label data-i18n="lbl_name">Ingredient Name *</label>
+        <input id="ing-name" placeholder="e.g. Espresso, Milk, Sugar" data-i18n-ph="ph_ing_name" />
       </div>
       <div class="col field">
-        <label>Category</label>
-        <input id="ing-cat" placeholder="e.g. Coffee, Dairy" />
+        <label data-i18n="lbl_category">Category</label>
+        <input id="ing-cat" placeholder="e.g. Coffee, Dairy" data-i18n-ph="ph_ing_cat" />
       </div>
     </div>
     <div class="row" style="margin-top:8px">
       <div class="col field">
-        <label>Purchase Quantity</label>
+        <label data-i18n="lbl_purchase_qty">Purchase Quantity</label>
         <input id="ing-qty" type="number" placeholder="1000" min="0" />
       </div>
       <div class="col field">
-        <label>Unit</label>
+        <label data-i18n="lbl_unit">Unit</label>
         <select id="ing-unit">
           <option>g</option><option>ml</option><option>kg</option>
           <option>L</option><option>pc</option><option>oz</option><option>tbsp</option><option>tsp</option>
         </select>
       </div>
       <div class="col field">
-        <label>Purchase Price (฿)</label>
+        <label data-i18n="lbl_purchase_price">Purchase Price (฿)</label>
         <input id="ing-price" type="number" placeholder="150" min="0" step="0.01" />
       </div>
     </div>
     <div class="cost-summary" style="margin-top:8px" id="ingCalcPreview"></div>
     <div class="field" style="margin-top:12px">
-      <label>Notes</label>
-      <textarea id="ing-notes" rows="2" placeholder="Brand, supplier, storage..."></textarea>
+      <label data-i18n="lbl_notes">Notes</label>
+      <textarea id="ing-notes" rows="2" placeholder="Brand, supplier, storage..." data-i18n-ph="ph_ing_notes"></textarea>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeIngModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveIngredient()">Save</button>
+      <button class="btn-ghost" onclick="closeIngModal()" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn-primary" onclick="saveIngredient()" data-i18n="btn_save">Save</button>
     </div>
   </div>
 </div>
@@ -281,67 +282,67 @@
 <div class="modal-overlay" id="recipeModal">
   <div class="modal" style="max-width:720px">
     <div class="modal-header">
-      <h2 id="recipeModalTitle">New Recipe</h2>
+      <h2 id="recipeModalTitle" data-i18n="modal_new_recipe">New Recipe</h2>
       <button class="modal-close" onclick="closeRecipeModal()">✕</button>
     </div>
 
     <div class="form-section">
-      <h3>Recipe Info</h3>
+      <h3 data-i18n="modal_recipe_info">Recipe Info</h3>
       <div class="row">
         <div class="col field" style="max-width:100px">
-          <label>Code *</label>
+          <label data-i18n="lbl_code">Code *</label>
           <input id="rec-code" maxlength="4" placeholder="0001" style="text-transform:uppercase;letter-spacing:2px;font-weight:700" />
         </div>
         <div class="col-2 field">
-          <label>Menu Name *</label>
-          <input id="rec-name" placeholder="e.g. Caramel Latte" />
+          <label data-i18n="lbl_menu_name">Menu Name *</label>
+          <input id="rec-name" placeholder="e.g. Caramel Latte" data-i18n-ph="ph_rec_name" />
         </div>
         <div class="col field">
-          <label>Category</label>
-          <input id="rec-cat" placeholder="e.g. Hot Coffee" />
+          <label data-i18n="lbl_category">Category</label>
+          <input id="rec-cat" placeholder="e.g. Hot Coffee" data-i18n-ph="ph_rec_cat" />
         </div>
       </div>
       <div class="row">
         <div class="col field">
-          <label>Serving Size</label>
+          <label data-i18n="lbl_serving_size">Serving Size</label>
           <input id="rec-serving" type="number" placeholder="1" min="1" value="1" />
         </div>
         <div class="col field">
-          <label>Yield (output ml/g)</label>
+          <label data-i18n="lbl_yield">Yield (output ml/g)</label>
           <input id="rec-yield" type="number" placeholder="250" min="0" oninput="onYieldChange()" />
         </div>
         <div class="col field">
-          <label>Selling Price (฿)</label>
+          <label data-i18n="lbl_sell_price">Selling Price (฿)</label>
           <input id="rec-price" type="number" placeholder="80" min="0" step="0.01" />
         </div>
       </div>
       <div class="field">
-        <label>Description / Method</label>
-        <textarea id="rec-desc" rows="2" placeholder="Steps, notes, serving suggestions..."></textarea>
+        <label data-i18n="lbl_desc">Description / Method</label>
+        <textarea id="rec-desc" rows="2" placeholder="Steps, notes, serving suggestions..." data-i18n-ph="ph_rec_desc"></textarea>
       </div>
     </div>
 
     <div class="form-section">
-      <h3>Ingredients</h3>
+      <h3 data-i18n="modal_ingredients">Ingredients</h3>
       <div class="row" style="margin-bottom:8px">
         <div class="col-2">
-          <label>Select Ingredient</label>
+          <label data-i18n="lbl_select_ing">Select Ingredient</label>
           <select id="rec-ing-pick">
-            <option value="">-- pick ingredient --</option>
+            <option value="" data-i18n="tip_pick_ing">-- pick ingredient --</option>
           </select>
         </div>
         <div class="col">
-          <label>Amount</label>
+          <label data-i18n="lbl_amount">Amount</label>
           <input id="rec-ing-amt" type="number" placeholder="30" min="0" step="0.1" />
         </div>
         <div style="display:flex;align-items:flex-end;padding-bottom:1px">
-          <button class="btn-success" onclick="addRecipeIngredient()">Add</button>
+          <button class="btn-success" onclick="addRecipeIngredient()" data-i18n="btn_add">Add</button>
         </div>
       </div>
       <table class="recipe-ing" id="recipeIngTable">
         <thead>
           <tr>
-            <th>No.</th><th>Ingredient</th><th>Amount</th><th>Unit</th><th>%</th><th>Cost (฿)</th><th></th>
+            <th data-i18n="th_no">No.</th><th data-i18n="th_ingredient">Ingredient</th><th data-i18n="th_amount">Amount</th><th data-i18n="th_unit">Unit</th><th data-i18n="th_pct">%</th><th data-i18n="th_cost">Cost (฿)</th><th></th>
           </tr>
         </thead>
         <tbody id="recipeIngBody"></tbody>
@@ -349,28 +350,28 @@
     </div>
 
     <div class="form-section">
-      <h3>Overhead (per serving)</h3>
+      <h3 data-i18n="lbl_overhead">Overhead (per serving)</h3>
       <div class="row" style="margin-bottom:10px">
         <div class="col-2">
-          <label>Load from Preset Set</label>
+          <label data-i18n="lbl_load_preset">Load from Preset Set</label>
           <select id="rec-oh-set-sel">
-            <option value="">-- Select Preset Set --</option>
+            <option value="" data-i18n="tip_pick_set">-- Select Preset Set --</option>
           </select>
         </div>
         <div style="display:flex;align-items:flex-end">
-          <button class="btn-ghost btn-sm" onclick="loadOHPresets()">⬇ Load</button>
+          <button class="btn-ghost btn-sm" onclick="loadOHPresets()" data-i18n="btn_load">⬇ Load</button>
         </div>
       </div>
       <div id="recipeOHList" style="margin-bottom:10px"></div>
       <div class="row">
         <div class="col-2">
-          <input id="rec-oh-name" placeholder="e.g. Labor, Gas, Packaging" />
+          <input id="rec-oh-name" placeholder="e.g. Labor, Gas, Packaging" data-i18n-ph="ph_oh_name" />
         </div>
         <div class="col">
           <input id="rec-oh-cost" type="number" placeholder="0.00" step="0.01" min="0" />
         </div>
         <div style="display:flex;align-items:center">
-          <button class="btn-success" onclick="addRecipeOH()">Add</button>
+          <button class="btn-success" onclick="addRecipeOH()" data-i18n="btn_add">Add</button>
         </div>
       </div>
     </div>
@@ -378,8 +379,8 @@
     <div class="cost-summary" id="recipeCostPreview"></div>
 
     <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeRecipeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveRecipe()">Save Recipe</button>
+      <button class="btn-ghost" onclick="closeRecipeModal()" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn-primary" onclick="saveRecipe()" data-i18n="btn_save_recipe">Save Recipe</button>
     </div>
   </div>
 </div>
@@ -393,9 +394,9 @@
     </div>
     <div id="rdBody"></div>
     <div class="modal-footer">
-      <button class="btn-danger btn-sm" id="rdDeleteBtn">Delete</button>
-      <button class="btn-ghost btn-sm" id="rdEditBtn">Edit</button>
-      <button class="btn-ghost" onclick="closeDetailModal()">Close</button>
+      <button class="btn-danger btn-sm" id="rdDeleteBtn" data-i18n="btn_delete">Delete</button>
+      <button class="btn-ghost btn-sm" id="rdEditBtn" data-i18n="btn_edit">Edit</button>
+      <button class="btn-ghost" onclick="closeDetailModal()" data-i18n="btn_close">Close</button>
     </div>
   </div>
 </div>
@@ -404,34 +405,34 @@
 <div class="modal-overlay" id="ohSetModal">
   <div class="modal" style="max-width:640px">
     <div class="modal-header">
-      <h2 id="ohSetModalTitle">New Preset Set</h2>
+      <h2 id="ohSetModalTitle" data-i18n="modal_new_set">New Preset Set</h2>
       <button class="modal-close" onclick="closeOHSetModal()">✕</button>
     </div>
     <div class="field">
-      <label>Set Name *</label>
-      <input id="ohs-name" placeholder="e.g. ร้านเล็ก, Delivery, Weekend Pop-up" />
+      <label data-i18n="lbl_set_name">Set Name *</label>
+      <input id="ohs-name" placeholder="e.g. ร้านเล็ก, Delivery, Weekend Pop-up" data-i18n-ph="ph_set_name" />
     </div>
     <div style="margin-top:16px">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Items</div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px" data-i18n="lbl_items">Items</div>
       <div id="ohsItemList"></div>
       <div class="row" style="margin-top:10px">
         <div class="col-2">
-          <input id="ohs-item-name" placeholder="Name (Labor, Gas, Packaging…)" />
+          <input id="ohs-item-name" placeholder="Name (Labor, Gas, Packaging…)" data-i18n-ph="ph_ohs_item_name" />
         </div>
         <div class="col">
           <input id="ohs-item-cost" type="number" placeholder="฿ / serving" min="0" step="0.01" />
         </div>
         <div style="display:flex;align-items:center">
-          <button class="btn-success btn-sm" onclick="addOHSItem()">Add</button>
+          <button class="btn-success btn-sm" onclick="addOHSItem()" data-i18n="btn_add">Add</button>
         </div>
       </div>
       <div class="field" style="margin-top:8px">
-        <input id="ohs-item-notes" placeholder="Detail / Notes (optional)" />
+        <input id="ohs-item-notes" placeholder="Detail / Notes (optional)" data-i18n-ph="ph_ohs_item_notes" />
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeOHSetModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveOHSet()">Save Set</button>
+      <button class="btn-ghost" onclick="closeOHSetModal()" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn-primary" onclick="saveOHSet()" data-i18n="btn_save_set">Save Set</button>
     </div>
   </div>
 </div>
@@ -465,6 +466,330 @@ function uid() {
 }
 
 // ═══════════════════════════════════════════════
+// LANG / I18N
+// ═══════════════════════════════════════════════
+const LANG = {
+  en: {
+    nav_dashboard: 'Dashboard',
+    nav_ingredients: 'Ingredients',
+    nav_recipes: 'Recipes',
+    nav_overhead: 'Overhead',
+    btn_export: '⬇ Export JSON',
+    btn_import: '⬆ Import JSON',
+    btn_add_ingredient: '+ Add Ingredient',
+    btn_new_recipe: '+ New Recipe',
+    btn_new_set: '+ New Set',
+    btn_save: 'Save',
+    btn_cancel: 'Cancel',
+    btn_add: 'Add',
+    btn_load: '⬇ Load',
+    btn_save_recipe: 'Save Recipe',
+    btn_save_set: 'Save Set',
+    btn_delete: 'Delete',
+    btn_edit: 'Edit',
+    btn_close: 'Close',
+    lbl_no: 'No. *',
+    lbl_name: 'Ingredient Name *',
+    lbl_category: 'Category',
+    lbl_purchase_qty: 'Purchase Quantity',
+    lbl_unit: 'Unit',
+    lbl_purchase_price: 'Purchase Price (฿)',
+    lbl_notes: 'Notes',
+    lbl_code: 'Code *',
+    lbl_menu_name: 'Menu Name *',
+    lbl_serving_size: 'Serving Size',
+    lbl_yield: 'Yield (output ml/g)',
+    lbl_sell_price: 'Selling Price (฿)',
+    lbl_desc: 'Description / Method',
+    lbl_select_ing: 'Select Ingredient',
+    lbl_amount: 'Amount',
+    lbl_overhead: 'Overhead (per serving)',
+    lbl_load_preset: 'Load from Preset Set',
+    lbl_set_name: 'Set Name *',
+    lbl_items: 'Items',
+    th_no: 'No.',
+    th_ingredient: 'Ingredient',
+    th_amount: 'Amount',
+    th_unit: 'Unit',
+    th_pct: '%',
+    th_cost: 'Cost (฿)',
+    th_overhead: 'Overhead',
+    th_cost_serving: 'Cost/Serving (฿)',
+    th_name: 'Name',
+    th_qty: 'Qty',
+    th_price: 'Price (฿)',
+    th_cost_unit: 'Cost/Unit',
+    th_code: 'Code',
+    th_cat: 'Category',
+    th_yield: 'Yield',
+    th_serving: 'Serving',
+    th_cps: 'Cost/Serving',
+    th_food_cost: 'Food Cost %',
+    th_item: 'Item',
+    cost_ing_per_serv: 'Ingredient Cost / Serving',
+    cost_oh_per_serv: 'Overhead / Serving',
+    cost_total: 'Total Cost / Serving',
+    cost_sell: 'Selling Price',
+    cost_gp: 'Gross Profit',
+    cost_margin: 'Margin',
+    cost_fc: 'Food Cost %',
+    cost_set_price: 'Set Selling Price to see Margin',
+    cost_total_oh: 'Total Overhead',
+    cost_buy_qty: 'Purchase Qty',
+    cost_buy_price: 'Purchase Price',
+    cost_per_unit: 'Cost per',
+    stat_ingredients: 'Ingredients',
+    stat_recipes: 'Recipes',
+    stat_categories: 'Categories',
+    stat_ing_groups: 'Ing. Groups',
+    dash_top_cost: 'Most Expensive Recipes (cost/serving)',
+    dash_ing_ref: 'Ingredient Price Reference',
+    dash_no_recipes: 'No recipes yet',
+    dash_no_ing: 'No ingredients yet',
+    page_ing_title: 'Ingredients',
+    page_recipe_title: 'Recipes',
+    page_oh_title: 'Overhead Preset Sets',
+    page_oh_subtitle: 'Create multiple sets e.g. "Small Shop", "Delivery" — load into recipes',
+    modal_add_ing: 'Add Ingredient',
+    modal_edit_ing: 'Edit Ingredient',
+    modal_new_recipe: 'New Recipe',
+    modal_edit_recipe: 'Edit Recipe',
+    modal_new_set: 'New Preset Set',
+    modal_edit_set: 'Edit Preset Set',
+    modal_recipe_info: 'Recipe Info',
+    modal_ingredients: 'Ingredients',
+    tip_no_ing: 'No ingredients added',
+    tip_no_oh: 'No overhead items. Add manually or click "Load Presets".',
+    tip_no_oh_set: 'No preset sets yet. Click "+ New Set"',
+    tip_no_items: 'No items yet.',
+    tip_no_ing_page: 'No ingredients yet. Click "+ Add Ingredient"',
+    tip_no_recipe_page: 'No recipes yet. Click "+ New Recipe"',
+    tip_all_cat: 'All Categories',
+    tip_pick_ing: '-- pick ingredient --',
+    tip_pick_set: '-- Select Preset Set --',
+    tip_items: 'items · Total',
+    bal_set: 'Set as Balance (auto-fill to yield)',
+    bal_unset: 'Unset Balance',
+    toast_ing_updated: 'Ingredient updated',
+    toast_ing_added: 'Ingredient added',
+    toast_ing_deleted: 'Deleted',
+    toast_ing_used: 'Cannot delete — used in a recipe',
+    toast_need_name: 'Please enter ingredient name',
+    toast_need_no: 'Please enter a valid No.',
+    toast_pick_ing: 'Pick an ingredient',
+    toast_need_amount: 'Enter a valid amount',
+    toast_need_oh_name: 'Enter overhead name',
+    toast_need_oh_cost: 'Enter a valid cost',
+    toast_pick_preset: 'Select a preset set first',
+    toast_rec_updated: 'Recipe updated',
+    toast_rec_saved: 'Recipe saved',
+    toast_need_code: 'Please enter a Code',
+    toast_need_rec_name: 'Please enter recipe name',
+    toast_exported: 'Exported',
+    toast_invalid_json: 'Invalid JSON file',
+    toast_set_name: 'Enter set name',
+    toast_set_updated: 'Set updated',
+    toast_set_created: 'Preset set created',
+    toast_item_name: 'Enter item name',
+    toast_item_cost: 'Enter valid cost',
+    toast_delete_preset: 'Delete this preset set?',
+    toast_delete_recipe: 'Delete recipe?',
+    toast_delete_ing: 'Delete this ingredient?',
+    toast_loaded: 'Loaded',
+    yield_badge: 'Yield:',
+    serving_badge: 'serving',
+    updated_label: 'Updated:',
+    ph_search_ing: 'Search ingredients...',
+    ph_search_rec: 'Search recipes...',
+    ph_ing_name: 'e.g. Espresso, Milk, Sugar',
+    ph_ing_cat: 'e.g. Coffee, Dairy',
+    ph_ing_notes: 'Brand, supplier, storage...',
+    ph_rec_name: 'e.g. Caramel Latte',
+    ph_rec_cat: 'e.g. Hot Coffee',
+    ph_rec_desc: 'Steps, notes, serving suggestions...',
+    ph_oh_name: 'e.g. Labor, Gas, Packaging',
+    ph_set_name: 'e.g. Small Shop, Delivery, Weekend Pop-up',
+    ph_ohs_item_name: 'Name (Labor, Gas, Packaging…)',
+    ph_ohs_item_notes: 'Detail / Notes (optional)',
+    imported_label: 'Imported:',
+    ingredients_label: 'ingredients',
+    recipes_label: 'recipes',
+    overhead_sets_label: 'overhead sets',
+    no_already_used: 'is already used by',
+    code_already_used: 'Code is already used by',
+  },
+  th: {
+    nav_dashboard: 'แดชบอร์ด',
+    nav_ingredients: 'วัตถุดิบ',
+    nav_recipes: 'สูตร',
+    nav_overhead: 'ค่าใช้จ่ายเสริม',
+    btn_export: '⬇ ส่งออก JSON',
+    btn_import: '⬆ นำเข้า JSON',
+    btn_add_ingredient: '+ เพิ่มวัตถุดิบ',
+    btn_new_recipe: '+ สูตรใหม่',
+    btn_new_set: '+ ชุดใหม่',
+    btn_save: 'บันทึก',
+    btn_cancel: 'ยกเลิก',
+    btn_add: 'เพิ่ม',
+    btn_load: '⬇ โหลด',
+    btn_save_recipe: 'บันทึกสูตร',
+    btn_save_set: 'บันทึกชุด',
+    btn_delete: 'ลบ',
+    btn_edit: 'แก้ไข',
+    btn_close: 'ปิด',
+    lbl_no: 'ลำดับ *',
+    lbl_name: 'ชื่อวัตถุดิบ *',
+    lbl_category: 'หมวดหมู่',
+    lbl_purchase_qty: 'ปริมาณซื้อ',
+    lbl_unit: 'หน่วย',
+    lbl_purchase_price: 'ราคาซื้อ (฿)',
+    lbl_notes: 'หมายเหตุ',
+    lbl_code: 'รหัส *',
+    lbl_menu_name: 'ชื่อเมนู *',
+    lbl_serving_size: 'จำนวนเสิร์ฟ',
+    lbl_yield: 'ปริมาณที่ได้ (ml/g)',
+    lbl_sell_price: 'ราคาขาย (฿)',
+    lbl_desc: 'วิธีทำ / หมายเหตุ',
+    lbl_select_ing: 'เลือกวัตถุดิบ',
+    lbl_amount: 'ปริมาณ',
+    lbl_overhead: 'ค่าใช้จ่ายเสริม (ต่อเสิร์ฟ)',
+    lbl_load_preset: 'โหลดจาก Preset Set',
+    lbl_set_name: 'ชื่อชุด *',
+    lbl_items: 'รายการ',
+    th_no: 'ลำดับ',
+    th_ingredient: 'วัตถุดิบ',
+    th_amount: 'ปริมาณ',
+    th_unit: 'หน่วย',
+    th_pct: '%',
+    th_cost: 'ต้นทุน (฿)',
+    th_overhead: 'ค่าใช้จ่ายเสริม',
+    th_cost_serving: 'ต้นทุน/เสิร์ฟ (฿)',
+    th_name: 'ชื่อ',
+    th_qty: 'ปริมาณซื้อ',
+    th_price: 'ราคา (฿)',
+    th_cost_unit: 'ราคา/หน่วย',
+    th_code: 'รหัส',
+    th_cat: 'หมวดหมู่',
+    th_yield: 'ปริมาณที่ได้',
+    th_serving: 'เสิร์ฟ',
+    th_cps: 'ต้นทุน/เสิร์ฟ',
+    th_food_cost: 'อัตราต้นทุน',
+    th_item: 'รายการ',
+    cost_ing_per_serv: 'ต้นทุนวัตถุดิบ/เสิร์ฟ',
+    cost_oh_per_serv: 'ค่าใช้จ่ายเสริม/เสิร์ฟ',
+    cost_total: 'ต้นทุนรวม/เสิร์ฟ',
+    cost_sell: 'ราคาขาย',
+    cost_gp: 'กำไรขั้นต้น',
+    cost_margin: 'มาร์จิ้น',
+    cost_fc: 'อัตราต้นทุนอาหาร',
+    cost_set_price: 'ใส่ราคาขายเพื่อดูมาร์จิ้น',
+    cost_total_oh: 'ค่าใช้จ่ายเสริมรวม',
+    cost_buy_qty: 'ปริมาณซื้อ',
+    cost_buy_price: 'ราคาซื้อ',
+    cost_per_unit: 'ราคาต่อ',
+    stat_ingredients: 'วัตถุดิบ',
+    stat_recipes: 'สูตร',
+    stat_categories: 'หมวดหมู่',
+    stat_ing_groups: 'กลุ่มวัตถุดิบ',
+    dash_top_cost: 'สูตรต้นทุนสูงสุด',
+    dash_ing_ref: 'อ้างอิงราคาวัตถุดิบ',
+    dash_no_recipes: 'ยังไม่มีสูตร',
+    dash_no_ing: 'ยังไม่มีวัตถุดิบ',
+    page_ing_title: 'วัตถุดิบ',
+    page_recipe_title: 'สูตร',
+    page_oh_title: 'ชุด Overhead Preset',
+    page_oh_subtitle: 'สร้างหลาย Set เช่น "ร้านเล็ก", "Delivery" — เลือกโหลดเข้าสูตรได้',
+    modal_add_ing: 'เพิ่มวัตถุดิบ',
+    modal_edit_ing: 'แก้ไขวัตถุดิบ',
+    modal_new_recipe: 'สูตรใหม่',
+    modal_edit_recipe: 'แก้ไขสูตร',
+    modal_new_set: 'ชุด Preset ใหม่',
+    modal_edit_set: 'แก้ไขชุด Preset',
+    modal_recipe_info: 'ข้อมูลสูตร',
+    modal_ingredients: 'ส่วนผสม',
+    tip_no_ing: 'ยังไม่ได้เพิ่มวัตถุดิบ',
+    tip_no_oh: 'ยังไม่มีรายการ ใส่เองหรือกด "โหลด Preset"',
+    tip_no_oh_set: 'ยังไม่มี Preset Set กด "+ ชุดใหม่"',
+    tip_no_items: 'ยังไม่มีรายการ',
+    tip_no_ing_page: 'ยังไม่มีวัตถุดิบ กด "+ เพิ่มวัตถุดิบ"',
+    tip_no_recipe_page: 'ยังไม่มีสูตร กด "+ สูตรใหม่"',
+    tip_all_cat: 'ทุกหมวด',
+    tip_pick_ing: '-- เลือกวัตถุดิบ --',
+    tip_pick_set: '-- เลือก Preset Set --',
+    tip_items: 'รายการ · รวม',
+    bal_set: 'ตั้งเป็น Balance (เติมอัตโนมัติตาม Yield)',
+    bal_unset: 'ยกเลิก Balance',
+    toast_ing_updated: 'อัปเดตวัตถุดิบแล้ว',
+    toast_ing_added: 'เพิ่มวัตถุดิบแล้ว',
+    toast_ing_deleted: 'ลบแล้ว',
+    toast_ing_used: 'ลบไม่ได้ — ถูกใช้ในสูตร',
+    toast_need_name: 'กรุณาใส่ชื่อวัตถุดิบ',
+    toast_need_no: 'กรุณาใส่เลขลำดับ',
+    toast_pick_ing: 'เลือกวัตถุดิบก่อน',
+    toast_need_amount: 'ใส่จำนวนที่ถูกต้อง',
+    toast_need_oh_name: 'ใส่ชื่อรายการ',
+    toast_need_oh_cost: 'ใส่ราคาที่ถูกต้อง',
+    toast_pick_preset: 'เลือก Preset Set ก่อน',
+    toast_rec_updated: 'อัปเดตสูตรแล้ว',
+    toast_rec_saved: 'บันทึกสูตรแล้ว',
+    toast_need_code: 'กรุณาใส่รหัส',
+    toast_need_rec_name: 'กรุณาใส่ชื่อสูตร',
+    toast_exported: 'ส่งออกแล้ว',
+    toast_invalid_json: 'ไฟล์ JSON ไม่ถูกต้อง',
+    toast_set_name: 'ใส่ชื่อชุด',
+    toast_set_updated: 'อัปเดตชุดแล้ว',
+    toast_set_created: 'สร้างชุด Preset แล้ว',
+    toast_item_name: 'ใส่ชื่อรายการ',
+    toast_item_cost: 'ใส่ราคาที่ถูกต้อง',
+    toast_delete_preset: 'ลบชุด Preset นี้?',
+    toast_delete_recipe: 'ลบสูตรนี้?',
+    toast_delete_ing: 'ลบวัตถุดิบนี้?',
+    toast_loaded: 'โหลดแล้ว',
+    yield_badge: 'ปริมาณที่ได้:',
+    serving_badge: 'เสิร์ฟ',
+    updated_label: 'อัปเดต:',
+    ph_search_ing: 'ค้นหาวัตถุดิบ...',
+    ph_search_rec: 'ค้นหาสูตร...',
+    ph_ing_name: 'เช่น เอสเพรสโซ, นม, น้ำตาล',
+    ph_ing_cat: 'เช่น กาแฟ, นม',
+    ph_ing_notes: 'แบรนด์, ผู้จำหน่าย, การเก็บรักษา...',
+    ph_rec_name: 'เช่น คาราเมล ลาเต้',
+    ph_rec_cat: 'เช่น กาแฟร้อน',
+    ph_rec_desc: 'ขั้นตอน, หมายเหตุ, วิธีเสิร์ฟ...',
+    ph_oh_name: 'เช่น แรงงาน, แก๊ส, บรรจุภัณฑ์',
+    ph_set_name: 'เช่น ร้านเล็ก, Delivery, Weekend Pop-up',
+    ph_ohs_item_name: 'ชื่อ (แรงงาน, แก๊ส, บรรจุภัณฑ์…)',
+    ph_ohs_item_notes: 'รายละเอียด / หมายเหตุ (ถ้ามี)',
+    imported_label: 'นำเข้าแล้ว:',
+    ingredients_label: 'วัตถุดิบ',
+    recipes_label: 'สูตร',
+    overhead_sets_label: 'ชุด overhead',
+    no_already_used: 'ถูกใช้โดย',
+    code_already_used: 'รหัสถูกใช้โดย',
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'en';
+function t(key) { return LANG[currentLang][key] || key; }
+function setLang(l) { currentLang = l; localStorage.setItem('lang', l); applyLang(); renderAll(); }
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.dataset.i18n; if(LANG[currentLang][k]) el.textContent=LANG[currentLang][k]; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { const k=el.dataset.i18nPh; if(LANG[currentLang][k]) el.placeholder=LANG[currentLang][k]; });
+  document.documentElement.lang = currentLang === 'th' ? 'th' : 'en';
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) langBtn.textContent = currentLang === 'en' ? 'TH' : 'EN';
+}
+function renderAll() {
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  const id = active.id.replace('page-','');
+  if(id==='dashboard') renderDashboard();
+  else if(id==='ingredients') renderIngredients();
+  else if(id==='recipes') renderRecipes();
+  else if(id==='overhead') renderOverheads();
+}
+
+// ═══════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════
 function showPage(id) {
@@ -478,6 +803,7 @@ function showPage(id) {
   if (id === 'recipes') renderRecipes();
   if (id === 'overhead') renderOverheads();
   if (id === 'dashboard') renderDashboard();
+  applyLang();
 }
 
 // ═══════════════════════════════════════════════
@@ -493,7 +819,7 @@ function costPerUnit(ing) {
 function openIngModal(id) {
   editIngId = id || null;
   const m = document.getElementById('ingModal');
-  document.getElementById('ingModalTitle').textContent = id ? 'Edit Ingredient' : 'Add Ingredient';
+  document.getElementById('ingModalTitle').textContent = id ? t('modal_edit_ing') : t('modal_add_ing');
   if (id) {
     const ing = DB.ingredients.find(i => i.id === id);
     document.getElementById('ing-no').value = ing.no || '';
@@ -521,9 +847,9 @@ function updateIngCalcPreview() {
   const unit = document.getElementById('ing-unit').value;
   const cpu = qty ? (price / qty).toFixed(4) : '—';
   document.getElementById('ingCalcPreview').innerHTML = `
-    <div class="cost-row"><span>Purchase Qty</span><span>${qty || '—'} ${unit}</span></div>
-    <div class="cost-row"><span>Purchase Price</span><span>฿${price.toFixed(2)}</span></div>
-    <div class="cost-row total"><span>Cost per ${unit}</span><span>฿${cpu}</span></div>
+    <div class="cost-row"><span>${t('cost_buy_qty')}</span><span>${qty || '—'} ${unit}</span></div>
+    <div class="cost-row"><span>${t('cost_buy_price')}</span><span>฿${price.toFixed(2)}</span></div>
+    <div class="cost-row total"><span>${t('cost_per_unit')} ${unit}</span><span>฿${cpu}</span></div>
   `;
 }
 
@@ -533,11 +859,11 @@ function updateIngCalcPreview() {
 
 function saveIngredient() {
   const name = document.getElementById('ing-name').value.trim();
-  if (!name) { toast('Please enter ingredient name', 'err'); return; }
+  if (!name) { toast(t('toast_need_name'), 'err'); return; }
   const no = parseInt(document.getElementById('ing-no').value);
-  if (!no || no < 1) { toast('Please enter a valid No.', 'err'); return; }
+  if (!no || no < 1) { toast(t('toast_need_no'), 'err'); return; }
   const duplicate = DB.ingredients.find(i => i.no === no && i.id !== editIngId);
-  if (duplicate) { toast(`No. ${no} is already used by "${duplicate.name}"`, 'err'); return; }
+  if (duplicate) { toast(`No. ${no} ${t('no_already_used')} "${duplicate.name}"`, 'err'); return; }
   const data = {
     no,
     name,
@@ -550,10 +876,10 @@ function saveIngredient() {
   if (editIngId) {
     const idx = DB.ingredients.findIndex(i => i.id === editIngId);
     DB.ingredients[idx] = { ...DB.ingredients[idx], ...data };
-    toast('Ingredient updated');
+    toast(t('toast_ing_updated'));
   } else {
     DB.ingredients.push({ id: uid(), ...data });
-    toast('Ingredient added', 'ok');
+    toast(t('toast_ing_added'), 'ok');
   }
   save();
   closeIngModal();
@@ -563,13 +889,13 @@ function saveIngredient() {
 
 function deleteIngredient(id) {
   const used = DB.recipes.some(r => r.ingredients && r.ingredients.some(i => i.ingId === id));
-  if (used) { toast('Cannot delete — used in a recipe', 'err'); return; }
-  if (!confirm('Delete this ingredient?')) return;
+  if (used) { toast(t('toast_ing_used'), 'err'); return; }
+  if (!confirm(t('toast_delete_ing'))) return;
   DB.ingredients = DB.ingredients.filter(i => i.id !== id);
   save();
   renderIngredients();
   renderDashboard();
-  toast('Deleted');
+  toast(t('toast_ing_deleted'));
 }
 
 let sortIng = { f: 'no', d: 1 };
@@ -597,18 +923,18 @@ function renderIngredients() {
   });
   const el = document.getElementById('ingTable');
   if (!list.length) {
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:28px">No ingredients yet. Click "+ Add Ingredient"</div>';
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:28px">${t('tip_no_ing_page')}</div>`;
     return;
   }
   el.innerHTML = `<table class="data-table">
     <thead><tr>
-      ${thIng('No.','no','td-no')}
-      ${thIng('Name','name')}
-      ${thIng('Category','cat')}
-      ${thIng('Qty','qty')}
-      <th>Unit</th>
-      ${thIng('Price (฿)','price')}
-      ${thIng('Cost/Unit','_cpu')}
+      ${thIng(t('th_no'),'no','td-no')}
+      ${thIng(t('th_name'),'name')}
+      ${thIng(t('th_cat'),'cat')}
+      ${thIng(t('th_qty'),'qty')}
+      <th>${t('th_unit')}</th>
+      ${thIng(t('th_price'),'price')}
+      ${thIng(t('th_cost_unit'),'_cpu')}
       <th class="td-act"></th>
     </tr></thead>
     <tbody>
@@ -641,7 +967,7 @@ let ohsTempItems = [];  // items being edited in the set modal
 function openOHSetModal(setId) {
   editOHSetId = setId || null;
   ohsTempItems = [];
-  document.getElementById('ohSetModalTitle').textContent = setId ? 'Edit Preset Set' : 'New Preset Set';
+  document.getElementById('ohSetModalTitle').textContent = setId ? t('modal_edit_set') : t('modal_new_set');
   if (setId) {
     const s = DB.overheadSets.find(s => s.id === setId);
     document.getElementById('ohs-name').value = s.name;
@@ -658,8 +984,8 @@ function closeOHSetModal() { document.getElementById('ohSetModal').classList.rem
 function addOHSItem() {
   const name = document.getElementById('ohs-item-name').value.trim();
   const cost = parseFloat(document.getElementById('ohs-item-cost').value);
-  if (!name) { toast('Enter item name', 'err'); return; }
-  if (isNaN(cost) || cost < 0) { toast('Enter valid cost', 'err'); return; }
+  if (!name) { toast(t('toast_item_name'), 'err'); return; }
+  if (isNaN(cost) || cost < 0) { toast(t('toast_item_cost'), 'err'); return; }
   const notes = document.getElementById('ohs-item-notes').value.trim();
   ohsTempItems.push({ id: uid(), name, cost, notes });
   ['ohs-item-name','ohs-item-cost','ohs-item-notes'].forEach(f => document.getElementById(f).value = '');
@@ -674,12 +1000,12 @@ function removeOHSItem(idx) {
 function renderOHSItems() {
   const el = document.getElementById('ohsItemList');
   if (!ohsTempItems.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:6px 0">No items yet.</div>';
+    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:6px 0">${t('tip_no_items')}</div>`;
     return;
   }
   const total = ohsTempItems.reduce((s, o) => s + o.cost, 0);
   el.innerHTML = `<table class="recipe-ing">
-    <thead><tr><th>Name</th><th>Cost/Serving</th><th>Notes</th><th></th></tr></thead>
+    <thead><tr><th>${t('th_name')}</th><th>${t('th_cost_serving')}</th><th>${t('lbl_notes')}</th><th></th></tr></thead>
     <tbody>
       ${ohsTempItems.map((o,i) => `<tr>
         <td>${esc(o.name)}</td>
@@ -688,7 +1014,7 @@ function renderOHSItems() {
         <td><button class="btn-icon btn-sm" onclick="removeOHSItem(${i})">✕</button></td>
       </tr>`).join('')}
       <tr style="background:var(--surface2)">
-        <td style="font-weight:700">Total</td>
+        <td style="font-weight:700">${t('cost_total_oh')}</td>
         <td style="color:var(--warn);font-weight:700">฿${total.toFixed(2)}</td>
         <td colspan="2"></td>
       </tr>
@@ -698,28 +1024,28 @@ function renderOHSItems() {
 
 function saveOHSet() {
   const name = document.getElementById('ohs-name').value.trim();
-  if (!name) { toast('Enter set name', 'err'); return; }
+  if (!name) { toast(t('toast_set_name'), 'err'); return; }
   if (editOHSetId) {
     const idx = DB.overheadSets.findIndex(s => s.id === editOHSetId);
     DB.overheadSets[idx] = { ...DB.overheadSets[idx], name, items: ohsTempItems };
-    toast('Set updated');
+    toast(t('toast_set_updated'));
   } else {
     DB.overheadSets.push({ id: uid(), name, items: ohsTempItems });
-    toast('Preset set created', 'ok');
+    toast(t('toast_set_created'), 'ok');
   }
   save(); closeOHSetModal(); renderOverheads();
 }
 
 function deleteOHSet(id) {
-  if (!confirm('Delete this preset set?')) return;
+  if (!confirm(t('toast_delete_preset'))) return;
   DB.overheadSets = DB.overheadSets.filter(s => s.id !== id);
-  save(); renderOverheads(); toast('Deleted');
+  save(); renderOverheads(); toast(t('toast_ing_deleted'));
 }
 
 function renderOverheads() {
   const el = document.getElementById('ohSetList');
   if (!DB.overheadSets.length) {
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">No preset sets yet. Click "+ New Set"</div>';
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px">${t('tip_no_oh_set')}</div>`;
     return;
   }
   el.innerHTML = DB.overheadSets.map(s => {
@@ -728,21 +1054,21 @@ function renderOverheads() {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div>
           <div style="font-weight:700;font-size:15px">${esc(s.name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">${(s.items||[]).length} items · Total ฿${total.toFixed(2)}/serving</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${(s.items||[]).length} ${t('tip_items')} ฿${total.toFixed(2)}/serving</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn-ghost btn-sm" onclick="openOHSetModal('${s.id}')">✏️ Edit</button>
+          <button class="btn-ghost btn-sm" onclick="openOHSetModal('${s.id}')">✏️ ${t('btn_edit')}</button>
           <button class="btn-icon btn-sm" onclick="deleteOHSet('${s.id}')">🗑️</button>
         </div>
       </div>
       <table class="data-table">
-        <thead><tr><th>Item</th><th>Cost/Serving (฿)</th><th>Notes</th></tr></thead>
+        <thead><tr><th>${t('th_item')}</th><th>${t('th_cost_serving')}</th><th>${t('lbl_notes')}</th></tr></thead>
         <tbody>
           ${(s.items||[]).map(o => `<tr>
             <td class="td-name">${esc(o.name)}</td>
             <td style="color:var(--warn);font-weight:600">฿${o.cost.toFixed(2)}</td>
             <td style="color:var(--muted);font-size:12px">${esc(o.notes||'—')}</td>
-          </tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted)">No items</td></tr>'}
+          </tr>`).join('') || `<tr><td colspan="3" style="color:var(--muted)">${t('tip_no_items')}</td></tr>`}
         </tbody>
       </table>
     </div>`;
@@ -777,7 +1103,7 @@ function openRecipeModal(id) {
   editRecId = id || null;
   recIngList = [];
   recOHList  = [];
-  document.getElementById('recipeModalTitle').textContent = id ? 'Edit Recipe' : 'New Recipe';
+  document.getElementById('recipeModalTitle').textContent = id ? t('modal_edit_recipe') : t('modal_new_recipe');
   if (id) {
     const r = DB.recipes.find(r => r.id === id);
     document.getElementById('rec-code').value = r.code || '';
@@ -807,15 +1133,15 @@ function closeRecipeModal() { document.getElementById('recipeModal').classList.r
 
 function populateIngPicker() {
   const sel = document.getElementById('rec-ing-pick');
-  sel.innerHTML = '<option value="">-- pick ingredient --</option>' +
+  sel.innerHTML = `<option value="">${t('tip_pick_ing')}</option>` +
     DB.ingredients.map(i => `<option value="${i.id}">#${i.no || '?'} ${esc(i.name)} (${i.unit})</option>`).join('');
 }
 
 function addRecipeIngredient() {
   const ingId = document.getElementById('rec-ing-pick').value;
   const amount = parseFloat(document.getElementById('rec-ing-amt').value);
-  if (!ingId) { toast('Pick an ingredient', 'err'); return; }
-  if (!amount || amount <= 0) { toast('Enter a valid amount', 'err'); return; }
+  if (!ingId) { toast(t('toast_pick_ing'), 'err'); return; }
+  if (!amount || amount <= 0) { toast(t('toast_need_amount'), 'err'); return; }
   const ing = DB.ingredients.find(i => i.id === ingId);
   const existing = recIngList.findIndex(r => r.ingId === ingId);
   if (existing >= 0) {
@@ -870,8 +1196,8 @@ function onYieldChange() {
 function addRecipeOH() {
   const name = document.getElementById('rec-oh-name').value.trim();
   const cost = parseFloat(document.getElementById('rec-oh-cost').value);
-  if (!name) { toast('Enter overhead name', 'err'); return; }
-  if (isNaN(cost) || cost < 0) { toast('Enter a valid cost', 'err'); return; }
+  if (!name) { toast(t('toast_need_oh_name'), 'err'); return; }
+  if (isNaN(cost) || cost < 0) { toast(t('toast_need_oh_cost'), 'err'); return; }
   recOHList.push({ name, cost });
   document.getElementById('rec-oh-name').value = '';
   document.getElementById('rec-oh-cost').value = '';
@@ -887,7 +1213,7 @@ function removeRecOH(idx) {
 
 function loadOHPresets() {
   const setId = document.getElementById('rec-oh-set-sel').value;
-  if (!setId) { toast('Select a preset set first', 'err'); return; }
+  if (!setId) { toast(t('toast_pick_preset'), 'err'); return; }
   const s = DB.overheadSets.find(s => s.id === setId);
   if (!s) return;
   (s.items||[]).forEach(o => {
@@ -896,12 +1222,12 @@ function loadOHPresets() {
   });
   renderRecipeOHList();
   updateRecipeCostPreview();
-  toast(`Loaded "${s.name}"`, 'ok');
+  toast(`${t('toast_loaded')} "${s.name}"`, 'ok');
 }
 
 function populateOHSetPicker() {
   const sel = document.getElementById('rec-oh-set-sel');
-  sel.innerHTML = '<option value="">-- Select Preset Set --</option>' +
+  sel.innerHTML = `<option value="">${t('tip_pick_set')}</option>` +
     DB.overheadSets.map(s => {
       const total = (s.items||[]).reduce((sum,o)=>sum+o.cost,0);
       return `<option value="${s.id}">${esc(s.name)} (฿${total.toFixed(2)}/serving)</option>`;
@@ -911,12 +1237,12 @@ function populateOHSetPicker() {
 function renderRecipeOHList() {
   const el = document.getElementById('recipeOHList');
   if (!recOHList.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:6px 0">No overhead items. Add manually or click "Load Presets".</div>';
+    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:6px 0">${t('tip_no_oh')}</div>`;
     return;
   }
   const total = recOHList.reduce((s, o) => s + o.cost, 0);
   el.innerHTML = `<table class="recipe-ing" style="margin-bottom:4px">
-    <thead><tr><th>Item</th><th>Cost/Serving (฿)</th><th></th></tr></thead>
+    <thead><tr><th>${t('th_item')}</th><th>${t('th_cost_serving')}</th><th></th></tr></thead>
     <tbody>
       ${recOHList.map((o, idx) => `<tr>
         <td>${esc(o.name)}</td>
@@ -924,7 +1250,7 @@ function renderRecipeOHList() {
         <td><button class="btn-icon btn-sm" onclick="removeRecOH(${idx})">✕</button></td>
       </tr>`).join('')}
       <tr style="background:var(--surface2)">
-        <td style="font-weight:700">Total Overhead</td>
+        <td style="font-weight:700">${t('cost_total_oh')}</td>
         <td style="color:var(--warn);font-weight:700">฿${total.toFixed(2)}</td>
         <td></td>
       </tr>
@@ -936,7 +1262,7 @@ function renderRecipeIngTable() {
   const yld = parseFloat(document.getElementById('rec-yield').value) || 0;
   const tbody = document.getElementById('recipeIngBody');
   if (!recIngList.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:12px">No ingredients added</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:12px">${t('tip_no_ing')}</td></tr>`;
     return;
   }
   const totalAmt = recIngList.reduce((s, r) => s + (r.amount || 0), 0);
@@ -967,7 +1293,7 @@ function renderRecipeIngTable() {
       </td>
       <td style="color:var(--accent2)">฿${cost}</td>
       <td style="width:68px;white-space:nowrap">
-        <button class="btn-icon btn-sm" title="${ri.isBalance ? 'Unset Balance' : 'Set as Balance (auto-fill to yield)'}"
+        <button class="btn-icon btn-sm" title="${ri.isBalance ? t('bal_unset') : t('bal_set')}"
           onclick="setBalance(${idx})"
           style="color:${ri.isBalance ? 'var(--accent)' : 'var(--muted)'};font-size:14px">⚖</button>
         <button class="btn-icon btn-sm" onclick="removeRecIng(${idx})">✕</button>
@@ -992,21 +1318,21 @@ function updateRecipeCostPreview() {
   const fcPct      = sellPrice ? ((ingPerServ / sellPrice) * 100).toFixed(1) : null;
 
   document.getElementById('recipeCostPreview').innerHTML = `
-    <div class="cost-row"><span>Ingredient Cost / Serving</span><span>฿${ingPerServ.toFixed(2)}</span></div>
-    <div class="cost-row"><span>Overhead / Serving</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
+    <div class="cost-row"><span>${t('cost_ing_per_serv')}</span><span>฿${ingPerServ.toFixed(2)}</span></div>
+    <div class="cost-row"><span>${t('cost_oh_per_serv')}</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
     <div class="cost-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px;font-weight:600">
-      <span>Total Cost / Serving</span><span>฿${totalCost.toFixed(2)}</span>
+      <span>${t('cost_total')}</span><span>฿${totalCost.toFixed(2)}</span>
     </div>
     ${sellPrice ? `
-    <div class="cost-row" style="margin-top:8px"><span>Selling Price</span><span>฿${sellPrice.toFixed(2)}</span></div>
-    <div class="cost-row"><span>Gross Profit</span>
+    <div class="cost-row" style="margin-top:8px"><span>${t('cost_sell')}</span><span>฿${sellPrice.toFixed(2)}</span></div>
+    <div class="cost-row"><span>${t('cost_gp')}</span>
       <span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)}</span>
     </div>
-    <div class="cost-row total"><span>Margin</span>
+    <div class="cost-row total"><span>${t('cost_margin')}</span>
       <span style="color:${margin>=30?'var(--accent2)':margin>=15?'var(--warn)':'var(--danger)'}">${margin.toFixed(1)}%</span>
     </div>
-    <div class="cost-row" style="font-size:12px;color:var(--muted)"><span>Food Cost %</span><span>${fcPct}%</span></div>
-    ` : '<div class="cost-row total"><span>Set Selling Price to see Margin</span><span>—</span></div>'}
+    <div class="cost-row" style="font-size:12px;color:var(--muted)"><span>${t('cost_fc')}</span><span>${fcPct}%</span></div>
+    ` : `<div class="cost-row total"><span>${t('cost_set_price')}</span><span>—</span></div>`}
   `;
 }
 
@@ -1016,11 +1342,11 @@ function updateRecipeCostPreview() {
 
 function saveRecipe() {
   const code = document.getElementById('rec-code').value.trim().toUpperCase();
-  if (!code) { toast('Please enter a Code', 'err'); return; }
+  if (!code) { toast(t('toast_need_code'), 'err'); return; }
   const dupCode = DB.recipes.find(r => r.code === code && r.id !== editRecId);
-  if (dupCode) { toast(`Code "${code}" is already used by "${dupCode.name}"`, 'err'); return; }
+  if (dupCode) { toast(`${t('code_already_used')} "${dupCode.name}"`, 'err'); return; }
   const name = document.getElementById('rec-name').value.trim();
-  if (!name) { toast('Please enter recipe name', 'err'); return; }
+  if (!name) { toast(t('toast_need_rec_name'), 'err'); return; }
   const data = {
     code,
     name,
@@ -1036,10 +1362,10 @@ function saveRecipe() {
   if (editRecId) {
     const idx = DB.recipes.findIndex(r => r.id === editRecId);
     DB.recipes[idx] = { ...DB.recipes[idx], ...data };
-    toast('Recipe updated');
+    toast(t('toast_rec_updated'));
   } else {
     DB.recipes.push({ id: uid(), createdAt: new Date().toISOString(), ...data });
-    toast('Recipe saved', 'ok');
+    toast(t('toast_rec_saved'), 'ok');
   }
   save();
   closeRecipeModal();
@@ -1068,7 +1394,7 @@ function renderRecipes() {
   const cats = [...new Set(DB.recipes.map(r => r.cat).filter(Boolean))];
   const sel = document.getElementById('recipeCatFilter');
   const curVal = sel.value;
-  sel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}" ${c===curVal?'selected':''}>${esc(c)}</option>`).join('');
+  sel.innerHTML = `<option value="">${t('tip_all_cat')}</option>` + cats.map(c => `<option value="${c}" ${c===curVal?'selected':''}>${esc(c)}</option>`).join('');
 
   let list = DB.recipes.filter(r =>
     (r.name.toLowerCase().includes(q) || (r.cat||'').toLowerCase().includes(q)) &&
@@ -1083,19 +1409,19 @@ function renderRecipes() {
 
   const el = document.getElementById('recipeTable');
   if (!list.length) {
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">No recipes yet. Click "+ New Recipe"</div>';
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px">${t('tip_no_recipe_page')}</div>`;
     return;
   }
   el.innerHTML = `<table class="data-table">
     <thead><tr>
-      ${thRec('Code','code')}
-      ${thRec('Name','name')}
-      ${thRec('Category','cat')}
-      ${thRec('Yield','yield')}
-      ${thRec('Serving','serving')}
-      ${thRec('Cost/Serving','_cps')}
-      ${thRec('Sell Price','price')}
-      ${thRec('Food Cost %','_fc')}
+      ${thRec(t('th_code'),'code')}
+      ${thRec(t('th_name'),'name')}
+      ${thRec(t('th_cat'),'cat')}
+      ${thRec(t('th_yield'),'yield')}
+      ${thRec(t('th_serving'),'serving')}
+      ${thRec(t('th_cps'),'_cps')}
+      ${thRec(t('th_price'),'price')}
+      ${thRec(t('th_food_cost'),'_fc')}
       <th class="td-act"></th>
     </tr></thead>
     <tbody>
@@ -1137,12 +1463,12 @@ function openDetailModal(id) {
   document.getElementById('rdBody').innerHTML = `
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
       ${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : ''}
-      ${r.yield ? `<span class="badge badge-green">Yield: ${r.yield}</span>` : ''}
-      <span class="badge badge-warn">x${r.serving} serving</span>
+      ${r.yield ? `<span class="badge badge-green">${t('yield_badge')} ${r.yield}</span>` : ''}
+      <span class="badge badge-warn">x${r.serving} ${t('serving_badge')}</span>
     </div>
     ${r.desc ? `<p style="font-size:14px;color:var(--muted);margin-bottom:14px;line-height:1.6">${esc(r.desc)}</p>` : ''}
     <table class="recipe-ing" style="margin-bottom:16px">
-      <thead><tr><th>No.</th><th>Ingredient</th><th>Amount</th><th>Unit</th><th>%</th><th>Cost (฿)</th></tr></thead>
+      <thead><tr><th>${t('th_no')}</th><th>${t('th_ingredient')}</th><th>${t('th_amount')}</th><th>${t('th_unit')}</th><th>${t('th_pct')}</th><th>${t('th_cost')}</th></tr></thead>
       <tbody>
         ${(r.ingredients||[]).map(ri => {
           const ing = DB.ingredients.find(i => i.id === ri.ingId);
@@ -1157,12 +1483,12 @@ function openDetailModal(id) {
             <td style="color:var(--muted)">${pct}</td>
             <td style="color:var(--accent2)">฿${cost}</td>
           </tr>`;
-        }).join('') || '<tr><td colspan="6" style="color:var(--muted)">No ingredients</td></tr>'}
+        }).join('') || `<tr><td colspan="6" style="color:var(--muted)">${t('tip_no_ing')}</td></tr>`}
       </tbody>
     </table>
     ${(r.overheads||[]).length ? `
     <table class="recipe-ing" style="margin-bottom:16px">
-      <thead><tr><th>Overhead</th><th>Cost / Serving (฿)</th></tr></thead>
+      <thead><tr><th>${t('th_overhead')}</th><th>${t('th_cost_serving')}</th></tr></thead>
       <tbody>
         ${(r.overheads||[]).map(o=>`<tr>
           <td>${esc(o.name)}</td>
@@ -1171,26 +1497,26 @@ function openDetailModal(id) {
       </tbody>
     </table>` : ''}
     <div class="cost-summary">
-      <div class="cost-row"><span>Ingredient Cost / Serving</span><span>฿${ingPerServ.toFixed(2)}</span></div>
-      <div class="cost-row"><span>Overhead / Serving</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
+      <div class="cost-row"><span>${t('cost_ing_per_serv')}</span><span>฿${ingPerServ.toFixed(2)}</span></div>
+      <div class="cost-row"><span>${t('cost_oh_per_serv')}</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
       <div class="cost-row" style="font-weight:600;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
-        <span>Total Cost / Serving</span><span>฿${perServing.toFixed(2)}</span>
+        <span>${t('cost_total')}</span><span>฿${perServing.toFixed(2)}</span>
       </div>
       ${r.price ? `
-      <div class="cost-row" style="margin-top:8px"><span>Selling Price</span><span>฿${r.price.toFixed(2)}</span></div>
-      <div class="cost-row"><span>Gross Profit</span>
+      <div class="cost-row" style="margin-top:8px"><span>${t('cost_sell')}</span><span>฿${r.price.toFixed(2)}</span></div>
+      <div class="cost-row"><span>${t('cost_gp')}</span>
         <span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)}</span>
       </div>
-      <div class="cost-row total"><span>Margin</span>
+      <div class="cost-row total"><span>${t('cost_margin')}</span>
         <span style="color:${margin>=30?'var(--accent2)':margin>=15?'var(--warn)':'var(--danger)'}">${margin.toFixed(1)}%</span>
       </div>
       <div class="cost-row" style="font-size:12px;color:var(--muted)">
-        <span>Food Cost %</span><span>${((ingPerServ/r.price)*100).toFixed(1)}%</span>
+        <span>${t('cost_fc')}</span><span>${((ingPerServ/r.price)*100).toFixed(1)}%</span>
       </div>` : ''}
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:10px">Updated: ${new Date(r.updatedAt||r.createdAt).toLocaleString()}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px">${t('updated_label')} ${new Date(r.updatedAt||r.createdAt).toLocaleString()}</div>
   `;
-  document.getElementById('rdDeleteBtn').onclick = () => { if (confirm('Delete recipe?')) { DB.recipes = DB.recipes.filter(x => x.id !== id); save(); closeDetailModal(); renderRecipes(); renderDashboard(); toast('Deleted'); } };
+  document.getElementById('rdDeleteBtn').onclick = () => { if (confirm(t('toast_delete_recipe'))) { DB.recipes = DB.recipes.filter(x => x.id !== id); save(); closeDetailModal(); renderRecipes(); renderDashboard(); toast(t('toast_ing_deleted')); } };
   document.getElementById('rdEditBtn').onclick = () => { closeDetailModal(); openRecipeModal(id); };
   document.getElementById('recipeDetailModal').classList.add('open');
 }
@@ -1202,23 +1528,23 @@ function closeDetailModal() { document.getElementById('recipeDetailModal').class
 // ═══════════════════════════════════════════════
 function renderDashboard() {
   document.getElementById('statGrid').innerHTML = `
-    <div class="stat-card"><div class="num" style="color:var(--accent)">${DB.ingredients.length}</div><div class="lbl">Ingredients</div></div>
-    <div class="stat-card"><div class="num" style="color:var(--accent2)">${DB.recipes.length}</div><div class="lbl">Recipes</div></div>
-    <div class="stat-card"><div class="num" style="color:var(--warn)">${[...new Set(DB.recipes.map(r=>r.cat).filter(Boolean))].length}</div><div class="lbl">Categories</div></div>
-    <div class="stat-card"><div class="num" style="color:#a78bfa">${[...new Set(DB.ingredients.map(i=>i.cat).filter(Boolean))].length}</div><div class="lbl">Ing. Groups</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--accent)">${DB.ingredients.length}</div><div class="lbl">${t('stat_ingredients')}</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--accent2)">${DB.recipes.length}</div><div class="lbl">${t('stat_recipes')}</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--warn)">${[...new Set(DB.recipes.map(r=>r.cat).filter(Boolean))].length}</div><div class="lbl">${t('stat_categories')}</div></div>
+    <div class="stat-card"><div class="num" style="color:#a78bfa">${[...new Set(DB.ingredients.map(i=>i.cat).filter(Boolean))].length}</div><div class="lbl">${t('stat_ing_groups')}</div></div>
   `;
   // Top cost recipes
   const sorted = [...DB.recipes].map(r => ({...r, cps: recipeCostPerServing(r)})).sort((a,b)=>b.cps-a.cps).slice(0,5);
   document.getElementById('topCostList').innerHTML = sorted.length ?
     sorted.map(r => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
       <span>${esc(r.name)}</span><span style="color:var(--accent2)">฿${r.cps.toFixed(2)}</span></div>`).join('') :
-    '<div style="color:var(--muted);font-size:13px">No recipes yet</div>';
+    `<div style="color:var(--muted);font-size:13px">${t('dash_no_recipes')}</div>`;
   // Ingredient summary
   const ings = [...DB.ingredients].sort((a,b)=>costPerUnit(b)-costPerUnit(a)).slice(0,6);
   document.getElementById('ingSummary').innerHTML = ings.length ?
     ings.map(i => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
       <span>${esc(i.name)}</span><span style="color:var(--muted)">฿${costPerUnit(i).toFixed(4)}/${i.unit}</span></div>`).join('') :
-    '<div style="color:var(--muted);font-size:13px">No ingredients yet</div>';
+    `<div style="color:var(--muted);font-size:13px">${t('dash_no_ing')}</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -1231,7 +1557,7 @@ function exportAll() {
   a.href = URL.createObjectURL(blob);
   a.download = `foodmatic-export-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
-  toast('Exported', 'ok');
+  toast(t('toast_exported'), 'ok');
 }
 
 function importAll(e) {
@@ -1246,9 +1572,9 @@ function importAll(e) {
       if (data.overheadSets)  DB.overheadSets  = data.overheadSets;
       save();
       renderDashboard();
-      toast(`Imported: ${DB.ingredients.length} ingredients, ${DB.recipes.length} recipes, ${DB.overheadSets.length} overhead sets`, 'ok');
+      toast(`${t('imported_label')} ${DB.ingredients.length} ${t('ingredients_label')}, ${DB.recipes.length} ${t('recipes_label')}, ${DB.overheadSets.length} ${t('overhead_sets_label')}`, 'ok');
     } catch(err) {
-      toast('Invalid JSON file', 'err');
+      toast(t('toast_invalid_json'), 'err');
     }
   };
   reader.readAsText(file);
@@ -1275,6 +1601,7 @@ function toast(msg, type = '') {
 // ═══════════════════════════════════════════════
 load();
 renderDashboard();
+applyLang();
 </script>
 </body>
 </html>
