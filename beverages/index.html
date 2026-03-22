@@ -270,6 +270,10 @@
     <div class="form-section">
       <h3>Recipe Info</h3>
       <div class="row">
+        <div class="col field" style="max-width:100px">
+          <label>Code *</label>
+          <input id="rec-code" maxlength="4" placeholder="0001" style="text-transform:uppercase;letter-spacing:2px;font-weight:700" />
+        </div>
         <div class="col-2 field">
           <label>Menu Name *</label>
           <input id="rec-name" placeholder="e.g. Caramel Latte" />
@@ -570,6 +574,7 @@ function openRecipeModal(id) {
   document.getElementById('recipeModalTitle').textContent = id ? 'Edit Recipe' : 'New Recipe';
   if (id) {
     const r = DB.recipes.find(r => r.id === id);
+    document.getElementById('rec-code').value = r.code || '';
     document.getElementById('rec-name').value = r.name;
     document.getElementById('rec-cat').value = r.cat || '';
     document.getElementById('rec-serving').value = r.serving || 1;
@@ -580,6 +585,8 @@ function openRecipeModal(id) {
   } else {
     ['rec-name','rec-cat','rec-yield','rec-price','rec-desc'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('rec-serving').value = 1;
+    const nextCode = String(DB.recipes.length + 1).padStart(4, '0');
+    document.getElementById('rec-code').value = nextCode;
   }
   populateIngPicker();
   renderRecipeIngTable();
@@ -660,9 +667,14 @@ function updateRecipeCostPreview() {
 });
 
 function saveRecipe() {
+  const code = document.getElementById('rec-code').value.trim().toUpperCase();
+  if (!code) { toast('Please enter a Code', 'err'); return; }
+  const dupCode = DB.recipes.find(r => r.code === code && r.id !== editRecId);
+  if (dupCode) { toast(`Code "${code}" is already used by "${dupCode.name}"`, 'err'); return; }
   const name = document.getElementById('rec-name').value.trim();
   if (!name) { toast('Please enter recipe name', 'err'); return; }
   const data = {
+    code,
     name,
     cat: document.getElementById('rec-cat').value.trim(),
     serving: parseFloat(document.getElementById('rec-serving').value) || 1,
@@ -727,6 +739,7 @@ function renderRecipes() {
   }
   el.innerHTML = `<table class="data-table">
     <thead><tr>
+      ${thRec('Code','code')}
       ${thRec('Name','name')}
       ${thRec('Category','cat')}
       ${thRec('Yield','yield')}
@@ -741,6 +754,7 @@ function renderRecipes() {
         const fc = r.price ? ((r._cps / r.price) * 100).toFixed(1) + '%' : '—';
         const fcColor = r.price ? (r._cps/r.price < 0.35 ? 'var(--accent2)' : r._cps/r.price < 0.5 ? 'var(--warn)' : 'var(--danger)') : 'var(--muted)';
         return `<tr style="cursor:pointer" onclick="openDetailModal('${r.id}')">
+          <td style="font-family:monospace;font-weight:700;color:var(--accent);letter-spacing:2px">${esc(r.code||'—')}</td>
           <td class="td-name">${esc(r.name)}</td>
           <td>${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : '<span class="td-muted">—</span>'}</td>
           <td class="td-muted">${r.yield || '—'}</td>
@@ -766,7 +780,9 @@ function openDetailModal(id) {
   const totalCost = recipeTotalCost(r);
   const perServing = recipeCostPerServing(r);
   const gp = r.price ? (r.price - perServing) : null;
-  document.getElementById('rdTitle').textContent = r.name;
+  document.getElementById('rdTitle').innerHTML = r.code
+    ? `<span style="font-family:monospace;color:var(--accent);letter-spacing:2px;margin-right:10px">${esc(r.code)}</span>${esc(r.name)}`
+    : esc(r.name);
   document.getElementById('rdBody').innerHTML = `
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
       ${r.cat ? `<span class="badge badge-blue">${esc(r.cat)}</span>` : ''}
