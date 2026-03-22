@@ -200,14 +200,14 @@
 
     <!-- ── OVERHEAD ── -->
     <div id="page-overhead" class="page">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div>
-          <h2 style="font-size:18px">Overhead Presets</h2>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">ต้นทุนต่อ serving — ใช้ร่วมกับทุกสูตร (โหลด preset เข้าสูตรได้)</div>
+          <h2 style="font-size:18px">Overhead Preset Sets</h2>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">สร้างหลาย Set เช่น "ร้านเล็ก", "Delivery" — เลือกโหลดเข้าสูตรได้</div>
         </div>
-        <button class="btn-primary" onclick="openOHModal()">+ Add Overhead</button>
+        <button class="btn-primary" onclick="openOHSetModal()">+ New Set</button>
       </div>
-      <div class="data-table-wrap" id="ohTable"></div>
+      <div id="ohSetList" style="margin-top:14px"></div>
     </div>
 
     <!-- ── RECIPES ── -->
@@ -349,10 +349,18 @@
     </div>
 
     <div class="form-section">
-      <h3 style="display:flex;justify-content:space-between;align-items:center">
-        <span>Overhead (per serving)</span>
-        <button class="btn-ghost btn-sm" onclick="loadOHPresets()" style="font-size:11px">⬇ Load Presets</button>
-      </h3>
+      <h3>Overhead (per serving)</h3>
+      <div class="row" style="margin-bottom:10px">
+        <div class="col-2">
+          <label>Load from Preset Set</label>
+          <select id="rec-oh-set-sel">
+            <option value="">-- Select Preset Set --</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn-ghost btn-sm" onclick="loadOHPresets()">⬇ Load</button>
+        </div>
+      </div>
       <div id="recipeOHList" style="margin-bottom:10px"></div>
       <div class="row">
         <div class="col-2">
@@ -392,28 +400,38 @@
   </div>
 </div>
 
-<!-- ── OVERHEAD MODAL ── -->
-<div class="modal-overlay" id="ohModal">
-  <div class="modal" style="max-width:400px">
+<!-- ── OVERHEAD SET MODAL ── -->
+<div class="modal-overlay" id="ohSetModal">
+  <div class="modal" style="max-width:640px">
     <div class="modal-header">
-      <h2 id="ohModalTitle">Add Overhead</h2>
-      <button class="modal-close" onclick="closeOHModal()">✕</button>
+      <h2 id="ohSetModalTitle">New Preset Set</h2>
+      <button class="modal-close" onclick="closeOHSetModal()">✕</button>
     </div>
     <div class="field">
-      <label>Name *</label>
-      <input id="oh-name" placeholder="e.g. Labor, Gas, Packaging, Straw" />
+      <label>Set Name *</label>
+      <input id="ohs-name" placeholder="e.g. ร้านเล็ก, Delivery, Weekend Pop-up" />
     </div>
-    <div class="field" style="margin-top:10px">
-      <label>Cost per Serving (฿) *</label>
-      <input id="oh-cost" type="number" placeholder="5.00" min="0" step="0.01" />
-    </div>
-    <div class="field" style="margin-top:10px">
-      <label>Detail / Notes</label>
-      <textarea id="oh-notes" rows="3" placeholder="e.g. ค่าแรง 2 คน × 300฿/วัน ÷ 120 แก้ว/วัน = 5฿/แก้ว"></textarea>
+    <div style="margin-top:16px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Items</div>
+      <div id="ohsItemList"></div>
+      <div class="row" style="margin-top:10px">
+        <div class="col-2">
+          <input id="ohs-item-name" placeholder="Name (Labor, Gas, Packaging…)" />
+        </div>
+        <div class="col">
+          <input id="ohs-item-cost" type="number" placeholder="฿ / serving" min="0" step="0.01" />
+        </div>
+        <div style="display:flex;align-items:center">
+          <button class="btn-success btn-sm" onclick="addOHSItem()">Add</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:8px">
+        <input id="ohs-item-notes" placeholder="Detail / Notes (optional)" />
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" onclick="closeOHModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveOH()">Save</button>
+      <button class="btn-ghost" onclick="closeOHSetModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveOHSet()">Save Set</button>
     </div>
   </div>
 </div>
@@ -428,7 +446,7 @@
 const DB = {
   ingredients: [],
   recipes: [],
-  overheads: [],
+  overheadSets: [],   // [{id, name, items:[{id,name,cost,notes}]}]
 };
 
 function load() {
@@ -615,81 +633,120 @@ function renderIngredients() {
 }
 
 // ═══════════════════════════════════════════════
-// OVERHEAD PRESETS
+// OVERHEAD PRESET SETS
 // ═══════════════════════════════════════════════
-let editOHId = null;
+let editOHSetId = null;
+let ohsTempItems = [];  // items being edited in the set modal
 
-function openOHModal(id) {
-  editOHId = id || null;
-  document.getElementById('ohModalTitle').textContent = id ? 'Edit Overhead' : 'Add Overhead';
-  if (id) {
-    const oh = DB.overheads.find(o => o.id === id);
-    document.getElementById('oh-name').value = oh.name;
-    document.getElementById('oh-cost').value = oh.cost;
-    document.getElementById('oh-notes').value = oh.notes || '';
+function openOHSetModal(setId) {
+  editOHSetId = setId || null;
+  ohsTempItems = [];
+  document.getElementById('ohSetModalTitle').textContent = setId ? 'Edit Preset Set' : 'New Preset Set';
+  if (setId) {
+    const s = DB.overheadSets.find(s => s.id === setId);
+    document.getElementById('ohs-name').value = s.name;
+    ohsTempItems = JSON.parse(JSON.stringify(s.items || []));
   } else {
-    document.getElementById('oh-name').value = '';
-    document.getElementById('oh-cost').value = '';
-    document.getElementById('oh-notes').value = '';
+    document.getElementById('ohs-name').value = '';
   }
-  document.getElementById('ohModal').classList.add('open');
+  ['ohs-item-name','ohs-item-cost','ohs-item-notes'].forEach(f => document.getElementById(f).value = '');
+  renderOHSItems();
+  document.getElementById('ohSetModal').classList.add('open');
 }
-function closeOHModal() { document.getElementById('ohModal').classList.remove('open'); }
+function closeOHSetModal() { document.getElementById('ohSetModal').classList.remove('open'); }
 
-function saveOH() {
-  const name = document.getElementById('oh-name').value.trim();
-  const cost = parseFloat(document.getElementById('oh-cost').value);
-  if (!name) { toast('Please enter overhead name', 'err'); return; }
-  if (isNaN(cost) || cost < 0) { toast('Please enter a valid cost', 'err'); return; }
-  const notes = document.getElementById('oh-notes').value.trim();
-  if (editOHId) {
-    const idx = DB.overheads.findIndex(o => o.id === editOHId);
-    DB.overheads[idx] = { ...DB.overheads[idx], name, cost, notes };
-    toast('Updated');
-  } else {
-    DB.overheads.push({ id: uid(), name, cost, notes });
-    toast('Overhead added', 'ok');
-  }
-  save(); closeOHModal(); renderOverheads();
+function addOHSItem() {
+  const name = document.getElementById('ohs-item-name').value.trim();
+  const cost = parseFloat(document.getElementById('ohs-item-cost').value);
+  if (!name) { toast('Enter item name', 'err'); return; }
+  if (isNaN(cost) || cost < 0) { toast('Enter valid cost', 'err'); return; }
+  const notes = document.getElementById('ohs-item-notes').value.trim();
+  ohsTempItems.push({ id: uid(), name, cost, notes });
+  ['ohs-item-name','ohs-item-cost','ohs-item-notes'].forEach(f => document.getElementById(f).value = '');
+  renderOHSItems();
 }
 
-function deleteOH(id) {
-  if (!confirm('Delete this overhead preset?')) return;
-  DB.overheads = DB.overheads.filter(o => o.id !== id);
+function removeOHSItem(idx) {
+  ohsTempItems.splice(idx, 1);
+  renderOHSItems();
+}
+
+function renderOHSItems() {
+  const el = document.getElementById('ohsItemList');
+  if (!ohsTempItems.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:6px 0">No items yet.</div>';
+    return;
+  }
+  const total = ohsTempItems.reduce((s, o) => s + o.cost, 0);
+  el.innerHTML = `<table class="recipe-ing">
+    <thead><tr><th>Name</th><th>Cost/Serving</th><th>Notes</th><th></th></tr></thead>
+    <tbody>
+      ${ohsTempItems.map((o,i) => `<tr>
+        <td>${esc(o.name)}</td>
+        <td style="color:var(--warn)">฿${o.cost.toFixed(2)}</td>
+        <td style="color:var(--muted);font-size:12px">${esc(o.notes||'')}</td>
+        <td><button class="btn-icon btn-sm" onclick="removeOHSItem(${i})">✕</button></td>
+      </tr>`).join('')}
+      <tr style="background:var(--surface2)">
+        <td style="font-weight:700">Total</td>
+        <td style="color:var(--warn);font-weight:700">฿${total.toFixed(2)}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
+function saveOHSet() {
+  const name = document.getElementById('ohs-name').value.trim();
+  if (!name) { toast('Enter set name', 'err'); return; }
+  if (editOHSetId) {
+    const idx = DB.overheadSets.findIndex(s => s.id === editOHSetId);
+    DB.overheadSets[idx] = { ...DB.overheadSets[idx], name, items: ohsTempItems };
+    toast('Set updated');
+  } else {
+    DB.overheadSets.push({ id: uid(), name, items: ohsTempItems });
+    toast('Preset set created', 'ok');
+  }
+  save(); closeOHSetModal(); renderOverheads();
+}
+
+function deleteOHSet(id) {
+  if (!confirm('Delete this preset set?')) return;
+  DB.overheadSets = DB.overheadSets.filter(s => s.id !== id);
   save(); renderOverheads(); toast('Deleted');
 }
 
 function renderOverheads() {
-  const el = document.getElementById('ohTable');
-  if (!DB.overheads.length) {
-    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:28px">No overhead presets. Click "+ Add Overhead"</div>';
+  const el = document.getElementById('ohSetList');
+  if (!DB.overheadSets.length) {
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:40px">No preset sets yet. Click "+ New Set"</div>';
     return;
   }
-  const total = DB.overheads.reduce((s, o) => s + o.cost, 0);
-  el.innerHTML = `<table class="data-table">
-    <thead><tr>
-      <th>Name</th>
-      <th>Cost / Serving (฿)</th>
-      <th>Detail / Notes</th>
-      <th class="td-act"></th>
-    </tr></thead>
-    <tbody>
-      ${DB.overheads.map(o => `<tr>
-        <td class="td-name">${esc(o.name)}</td>
-        <td class="td-cost">฿${o.cost.toFixed(2)}</td>
-        <td style="color:var(--muted);font-size:12px;line-height:1.5">${o.notes ? esc(o.notes) : '<span style="opacity:.4">—</span>'}</td>
-        <td class="td-act">
-          <button class="btn-icon btn-sm" onclick="openOHModal('${o.id}')">✏️</button>
-          <button class="btn-icon btn-sm" onclick="deleteOH('${o.id}')">🗑️</button>
-        </td>
-      </tr>`).join('')}
-      <tr style="background:var(--surface2)">
-        <td style="font-weight:700">Total</td>
-        <td class="td-cost" style="font-size:15px">฿${total.toFixed(2)}</td>
-        <td></td><td></td>
-      </tr>
-    </tbody>
-  </table>`;
+  el.innerHTML = DB.overheadSets.map(s => {
+    const total = (s.items||[]).reduce((sum,o) => sum+o.cost, 0);
+    return `<div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;font-size:15px">${esc(s.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${(s.items||[]).length} items · Total ฿${total.toFixed(2)}/serving</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-ghost btn-sm" onclick="openOHSetModal('${s.id}')">✏️ Edit</button>
+          <button class="btn-icon btn-sm" onclick="deleteOHSet('${s.id}')">🗑️</button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Item</th><th>Cost/Serving (฿)</th><th>Notes</th></tr></thead>
+        <tbody>
+          ${(s.items||[]).map(o => `<tr>
+            <td class="td-name">${esc(o.name)}</td>
+            <td style="color:var(--warn);font-weight:600">฿${o.cost.toFixed(2)}</td>
+            <td style="color:var(--muted);font-size:12px">${esc(o.notes||'—')}</td>
+          </tr>`).join('') || '<tr><td colspan="3" style="color:var(--muted)">No items</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════
@@ -739,6 +796,7 @@ function openRecipeModal(id) {
     document.getElementById('rec-code').value = nextCode;
   }
   populateIngPicker();
+  populateOHSetPicker();
   renderRecipeIngTable();
   renderRecipeOHList();
   updateRecipeCostPreview();
@@ -828,14 +886,26 @@ function removeRecOH(idx) {
 }
 
 function loadOHPresets() {
-  if (!DB.overheads.length) { toast('No overhead presets defined', 'err'); return; }
-  DB.overheads.forEach(o => {
+  const setId = document.getElementById('rec-oh-set-sel').value;
+  if (!setId) { toast('Select a preset set first', 'err'); return; }
+  const s = DB.overheadSets.find(s => s.id === setId);
+  if (!s) return;
+  (s.items||[]).forEach(o => {
     if (!recOHList.find(r => r.name === o.name))
       recOHList.push({ name: o.name, cost: o.cost });
   });
   renderRecipeOHList();
   updateRecipeCostPreview();
-  toast('Presets loaded', 'ok');
+  toast(`Loaded "${s.name}"`, 'ok');
+}
+
+function populateOHSetPicker() {
+  const sel = document.getElementById('rec-oh-set-sel');
+  sel.innerHTML = '<option value="">-- Select Preset Set --</option>' +
+    DB.overheadSets.map(s => {
+      const total = (s.items||[]).reduce((sum,o)=>sum+o.cost,0);
+      return `<option value="${s.id}">${esc(s.name)} (฿${total.toFixed(2)}/serving)</option>`;
+    }).join('');
 }
 
 function renderRecipeOHList() {
