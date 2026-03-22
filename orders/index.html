@@ -791,7 +791,6 @@ function renderKitchen() {
       <div style="font-size:11px;color:var(--muted);margin-top:6px">Orders: ${batch.map(o=>esc(o.no)).join(', ')}</div>
       <button class="btn-success" onclick="markBatchDone('${date}');renderKitchen()" style="position:absolute;bottom:12px;right:12px;padding:8px 18px;font-size:15px">✓ Done</button>
     </div>`;
-    </div>`;
   });
 
   el.innerHTML = html;
