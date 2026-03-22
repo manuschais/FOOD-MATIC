@@ -169,6 +169,7 @@
     <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
     <button class="nav-tab" onclick="showPage('ingredients')">Ingredients</button>
     <button class="nav-tab" onclick="showPage('recipes')">Recipes</button>
+    <button class="nav-tab" onclick="showPage('overhead')">Overhead</button>
   </nav>
 
   <main>
@@ -195,6 +196,18 @@
       </div>
       <input type="text" id="ingSearch" placeholder="Search ingredients..." style="margin-bottom:12px" oninput="renderIngredients()">
       <div class="data-table-wrap" id="ingTable"></div>
+    </div>
+
+    <!-- ── OVERHEAD ── -->
+    <div id="page-overhead" class="page">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div>
+          <h2 style="font-size:18px">Overhead Presets</h2>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">ต้นทุนต่อ serving — ใช้ร่วมกับทุกสูตร (โหลด preset เข้าสูตรได้)</div>
+        </div>
+        <button class="btn-primary" onclick="openOHModal()">+ Add Overhead</button>
+      </div>
+      <div class="data-table-wrap" id="ohTable"></div>
     </div>
 
     <!-- ── RECIPES ── -->
@@ -335,6 +348,25 @@
       </table>
     </div>
 
+    <div class="form-section">
+      <h3 style="display:flex;justify-content:space-between;align-items:center">
+        <span>Overhead (per serving)</span>
+        <button class="btn-ghost btn-sm" onclick="loadOHPresets()" style="font-size:11px">⬇ Load Presets</button>
+      </h3>
+      <div id="recipeOHList" style="margin-bottom:10px"></div>
+      <div class="row">
+        <div class="col-2">
+          <input id="rec-oh-name" placeholder="e.g. Labor, Gas, Packaging" />
+        </div>
+        <div class="col">
+          <input id="rec-oh-cost" type="number" placeholder="0.00" step="0.01" min="0" />
+        </div>
+        <div style="display:flex;align-items:center">
+          <button class="btn-success" onclick="addRecipeOH()">Add</button>
+        </div>
+      </div>
+    </div>
+
     <div class="cost-summary" id="recipeCostPreview"></div>
 
     <div class="modal-footer">
@@ -360,6 +392,28 @@
   </div>
 </div>
 
+<!-- ── OVERHEAD MODAL ── -->
+<div class="modal-overlay" id="ohModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2 id="ohModalTitle">Add Overhead</h2>
+      <button class="modal-close" onclick="closeOHModal()">✕</button>
+    </div>
+    <div class="field">
+      <label>Name *</label>
+      <input id="oh-name" placeholder="e.g. Labor, Gas, Packaging, Straw" />
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label>Cost per Serving (฿) *</label>
+      <input id="oh-cost" type="number" placeholder="5.00" min="0" step="0.01" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeOHModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveOH()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── TOAST ── -->
 <div id="toast"></div>
 
@@ -370,6 +424,7 @@
 const DB = {
   ingredients: [],
   recipes: [],
+  overheads: [],
 };
 
 function load() {
@@ -399,6 +454,7 @@ function showPage(id) {
   });
   if (id === 'ingredients') renderIngredients();
   if (id === 'recipes') renderRecipes();
+  if (id === 'overhead') renderOverheads();
   if (id === 'dashboard') renderDashboard();
 }
 
@@ -555,27 +611,106 @@ function renderIngredients() {
 }
 
 // ═══════════════════════════════════════════════
+// OVERHEAD PRESETS
+// ═══════════════════════════════════════════════
+let editOHId = null;
+
+function openOHModal(id) {
+  editOHId = id || null;
+  document.getElementById('ohModalTitle').textContent = id ? 'Edit Overhead' : 'Add Overhead';
+  if (id) {
+    const oh = DB.overheads.find(o => o.id === id);
+    document.getElementById('oh-name').value = oh.name;
+    document.getElementById('oh-cost').value = oh.cost;
+  } else {
+    document.getElementById('oh-name').value = '';
+    document.getElementById('oh-cost').value = '';
+  }
+  document.getElementById('ohModal').classList.add('open');
+}
+function closeOHModal() { document.getElementById('ohModal').classList.remove('open'); }
+
+function saveOH() {
+  const name = document.getElementById('oh-name').value.trim();
+  const cost = parseFloat(document.getElementById('oh-cost').value);
+  if (!name) { toast('Please enter overhead name', 'err'); return; }
+  if (isNaN(cost) || cost < 0) { toast('Please enter a valid cost', 'err'); return; }
+  if (editOHId) {
+    const idx = DB.overheads.findIndex(o => o.id === editOHId);
+    DB.overheads[idx] = { ...DB.overheads[idx], name, cost };
+    toast('Updated');
+  } else {
+    DB.overheads.push({ id: uid(), name, cost });
+    toast('Overhead added', 'ok');
+  }
+  save(); closeOHModal(); renderOverheads();
+}
+
+function deleteOH(id) {
+  if (!confirm('Delete this overhead preset?')) return;
+  DB.overheads = DB.overheads.filter(o => o.id !== id);
+  save(); renderOverheads(); toast('Deleted');
+}
+
+function renderOverheads() {
+  const el = document.getElementById('ohTable');
+  if (!DB.overheads.length) {
+    el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:28px">No overhead presets. Click "+ Add Overhead"</div>';
+    return;
+  }
+  const total = DB.overheads.reduce((s, o) => s + o.cost, 0);
+  el.innerHTML = `<table class="data-table">
+    <thead><tr>
+      <th>Name</th>
+      <th>Cost / Serving (฿)</th>
+      <th class="td-act"></th>
+    </tr></thead>
+    <tbody>
+      ${DB.overheads.map(o => `<tr>
+        <td class="td-name">${esc(o.name)}</td>
+        <td class="td-cost">฿${o.cost.toFixed(2)}</td>
+        <td class="td-act">
+          <button class="btn-icon btn-sm" onclick="openOHModal('${o.id}')">✏️</button>
+          <button class="btn-icon btn-sm" onclick="deleteOH('${o.id}')">🗑️</button>
+        </td>
+      </tr>`).join('')}
+      <tr style="background:var(--surface2)">
+        <td style="font-weight:700">Total</td>
+        <td class="td-cost" style="font-size:15px">฿${total.toFixed(2)}</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════════
 // RECIPES
 // ═══════════════════════════════════════════════
 let editRecId = null;
 let recIngList = [];  // [{ingId, name, unit, amount}]
+let recOHList  = [];  // [{name, cost}]
 
-function recipeTotalCost(rec) {
+function recipeIngCost(rec) {
   return (rec.ingredients || []).reduce((s, ri) => {
     const ing = DB.ingredients.find(i => i.id === ri.ingId);
-    if (!ing) return s;
-    return s + costPerUnit(ing) * ri.amount;
+    return s + (ing ? costPerUnit(ing) * ri.amount : 0);
   }, 0);
 }
 
+function recipeTotalCost(rec) {
+  const ingCost = recipeIngCost(rec) / (rec.serving || 1);
+  const ohCost = (rec.overheads || []).reduce((s, o) => s + (o.cost || 0), 0);
+  return ingCost + ohCost;
+}
+
 function recipeCostPerServing(rec) {
-  const total = recipeTotalCost(rec);
-  return total / (rec.serving || 1);
+  return recipeTotalCost(rec);
 }
 
 function openRecipeModal(id) {
   editRecId = id || null;
   recIngList = [];
+  recOHList  = [];
   document.getElementById('recipeModalTitle').textContent = id ? 'Edit Recipe' : 'New Recipe';
   if (id) {
     const r = DB.recipes.find(r => r.id === id);
@@ -587,6 +722,7 @@ function openRecipeModal(id) {
     document.getElementById('rec-price').value = r.price || '';
     document.getElementById('rec-desc').value = r.desc || '';
     recIngList = JSON.parse(JSON.stringify(r.ingredients || []));
+    recOHList  = JSON.parse(JSON.stringify(r.overheads  || []));
   } else {
     ['rec-name','rec-cat','rec-yield','rec-price','rec-desc'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('rec-serving').value = 1;
@@ -595,6 +731,7 @@ function openRecipeModal(id) {
   }
   populateIngPicker();
   renderRecipeIngTable();
+  renderRecipeOHList();
   updateRecipeCostPreview();
   document.getElementById('recipeModal').classList.add('open');
 }
@@ -663,6 +800,59 @@ function onYieldChange() {
   updateRecipeCostPreview();
 }
 
+function addRecipeOH() {
+  const name = document.getElementById('rec-oh-name').value.trim();
+  const cost = parseFloat(document.getElementById('rec-oh-cost').value);
+  if (!name) { toast('Enter overhead name', 'err'); return; }
+  if (isNaN(cost) || cost < 0) { toast('Enter a valid cost', 'err'); return; }
+  recOHList.push({ name, cost });
+  document.getElementById('rec-oh-name').value = '';
+  document.getElementById('rec-oh-cost').value = '';
+  renderRecipeOHList();
+  updateRecipeCostPreview();
+}
+
+function removeRecOH(idx) {
+  recOHList.splice(idx, 1);
+  renderRecipeOHList();
+  updateRecipeCostPreview();
+}
+
+function loadOHPresets() {
+  if (!DB.overheads.length) { toast('No overhead presets defined', 'err'); return; }
+  DB.overheads.forEach(o => {
+    if (!recOHList.find(r => r.name === o.name))
+      recOHList.push({ name: o.name, cost: o.cost });
+  });
+  renderRecipeOHList();
+  updateRecipeCostPreview();
+  toast('Presets loaded', 'ok');
+}
+
+function renderRecipeOHList() {
+  const el = document.getElementById('recipeOHList');
+  if (!recOHList.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:6px 0">No overhead items. Add manually or click "Load Presets".</div>';
+    return;
+  }
+  const total = recOHList.reduce((s, o) => s + o.cost, 0);
+  el.innerHTML = `<table class="recipe-ing" style="margin-bottom:4px">
+    <thead><tr><th>Item</th><th>Cost/Serving (฿)</th><th></th></tr></thead>
+    <tbody>
+      ${recOHList.map((o, idx) => `<tr>
+        <td>${esc(o.name)}</td>
+        <td style="color:var(--warn)">฿${o.cost.toFixed(2)}</td>
+        <td><button class="btn-icon btn-sm" onclick="removeRecOH(${idx})">✕</button></td>
+      </tr>`).join('')}
+      <tr style="background:var(--surface2)">
+        <td style="font-weight:700">Total Overhead</td>
+        <td style="color:var(--warn);font-weight:700">฿${total.toFixed(2)}</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
 function renderRecipeIngTable() {
   const yld = parseFloat(document.getElementById('rec-yield').value) || 0;
   const tbody = document.getElementById('recipeIngBody');
@@ -708,22 +898,36 @@ function renderRecipeIngTable() {
 }
 
 function updateRecipeCostPreview() {
-  const serving = parseFloat(document.getElementById('rec-serving').value) || 1;
-  const sellPrice = parseFloat(document.getElementById('rec-price').value) || 0;
-  const totalCost = recIngList.reduce((s, ri) => {
+  const serving   = parseFloat(document.getElementById('rec-serving').value) || 1;
+  const sellPrice = parseFloat(document.getElementById('rec-price').value)   || 0;
+
+  const ingTotal  = recIngList.reduce((s, ri) => {
     const ing = DB.ingredients.find(i => i.id === ri.ingId);
-    return s + (ing ? costPerUnit(ing) * ri.amount : 0);
+    return s + (ing ? costPerUnit(ing) * (ri.amount || 0) : 0);
   }, 0);
-  const perServing = totalCost / serving;
-  const gp = sellPrice ? sellPrice - perServing : null;
-  const gpPct = (sellPrice && perServing) ? ((gp / sellPrice) * 100).toFixed(1) : null;
+  const ingPerServ = ingTotal / serving;
+  const ohTotal    = recOHList.reduce((s, o) => s + (o.cost || 0), 0);
+  const totalCost  = ingPerServ + ohTotal;
+  const gp         = sellPrice ? sellPrice - totalCost : null;
+  const margin     = (sellPrice && totalCost) ? ((gp / sellPrice) * 100) : null;
+  const fcPct      = sellPrice ? ((ingPerServ / sellPrice) * 100).toFixed(1) : null;
+
   document.getElementById('recipeCostPreview').innerHTML = `
-    <div class="cost-row"><span>Total Ingredient Cost</span><span>฿${totalCost.toFixed(2)}</span></div>
-    <div class="cost-row"><span>Servings</span><span>${serving}</span></div>
-    <div class="cost-row"><span>Cost per Serving</span><span>฿${perServing.toFixed(2)}</span></div>
-    ${sellPrice ? `<div class="cost-row"><span>Selling Price</span><span>฿${sellPrice.toFixed(2)}</span></div>` : ''}
-    ${gp !== null ? `<div class="cost-row"><span>Gross Profit</span><span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)} (${gpPct}%)</span></div>` : ''}
-    <div class="cost-row total"><span>Food Cost %</span><span>${sellPrice ? ((perServing/sellPrice)*100).toFixed(1)+'%' : '—'}</span></div>
+    <div class="cost-row"><span>Ingredient Cost / Serving</span><span>฿${ingPerServ.toFixed(2)}</span></div>
+    <div class="cost-row"><span>Overhead / Serving</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
+    <div class="cost-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px;font-weight:600">
+      <span>Total Cost / Serving</span><span>฿${totalCost.toFixed(2)}</span>
+    </div>
+    ${sellPrice ? `
+    <div class="cost-row" style="margin-top:8px"><span>Selling Price</span><span>฿${sellPrice.toFixed(2)}</span></div>
+    <div class="cost-row"><span>Gross Profit</span>
+      <span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)}</span>
+    </div>
+    <div class="cost-row total"><span>Margin</span>
+      <span style="color:${margin>=30?'var(--accent2)':margin>=15?'var(--warn)':'var(--danger)'}">${margin.toFixed(1)}%</span>
+    </div>
+    <div class="cost-row" style="font-size:12px;color:var(--muted)"><span>Food Cost %</span><span>${fcPct}%</span></div>
+    ` : '<div class="cost-row total"><span>Set Selling Price to see Margin</span><span>—</span></div>'}
   `;
 }
 
@@ -747,6 +951,7 @@ function saveRecipe() {
     price: parseFloat(document.getElementById('rec-price').value) || 0,
     desc: document.getElementById('rec-desc').value.trim(),
     ingredients: JSON.parse(JSON.stringify(recIngList)),
+    overheads:   JSON.parse(JSON.stringify(recOHList)),
     updatedAt: new Date().toISOString(),
   };
   if (editRecId) {
@@ -842,9 +1047,11 @@ function renderRecipes() {
 function openDetailModal(id) {
   const r = DB.recipes.find(r => r.id === id);
   if (!r) return;
-  const totalCost = recipeTotalCost(r);
-  const perServing = recipeCostPerServing(r);
+  const ingPerServ = recipeIngCost(r) / (r.serving || 1);
+  const ohTotal    = (r.overheads || []).reduce((s, o) => s + (o.cost || 0), 0);
+  const perServing = ingPerServ + ohTotal;
   const gp = r.price ? (r.price - perServing) : null;
+  const margin = (r.price && perServing) ? ((gp / r.price) * 100) : null;
   document.getElementById('rdTitle').innerHTML = r.code
     ? `<span style="font-family:monospace;color:var(--accent);letter-spacing:2px;margin-right:10px">${esc(r.code)}</span>${esc(r.name)}`
     : esc(r.name);
@@ -874,13 +1081,33 @@ function openDetailModal(id) {
         }).join('') || '<tr><td colspan="6" style="color:var(--muted)">No ingredients</td></tr>'}
       </tbody>
     </table>
+    ${(r.overheads||[]).length ? `
+    <table class="recipe-ing" style="margin-bottom:16px">
+      <thead><tr><th>Overhead</th><th>Cost / Serving (฿)</th></tr></thead>
+      <tbody>
+        ${(r.overheads||[]).map(o=>`<tr>
+          <td>${esc(o.name)}</td>
+          <td style="color:var(--warn)">฿${o.cost.toFixed(2)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : ''}
     <div class="cost-summary">
-      <div class="cost-row"><span>Total Ingredient Cost</span><span>฿${totalCost.toFixed(2)}</span></div>
-      <div class="cost-row"><span>Servings</span><span>${r.serving}</span></div>
-      ${r.yield ? `<div class="cost-row"><span>Yield</span><span>${r.yield}</span></div>` : ''}
-      ${r.price ? `<div class="cost-row"><span>Selling Price</span><span>฿${r.price.toFixed(2)}</span></div>` : ''}
-      ${gp !== null ? `<div class="cost-row"><span>Gross Profit</span><span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)} (${((gp/r.price)*100).toFixed(1)}%)</span></div>` : ''}
-      <div class="cost-row total"><span>Cost / Serving</span><span>฿${perServing.toFixed(2)}</span></div>
+      <div class="cost-row"><span>Ingredient Cost / Serving</span><span>฿${ingPerServ.toFixed(2)}</span></div>
+      <div class="cost-row"><span>Overhead / Serving</span><span style="color:var(--warn)">฿${ohTotal.toFixed(2)}</span></div>
+      <div class="cost-row" style="font-weight:600;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
+        <span>Total Cost / Serving</span><span>฿${perServing.toFixed(2)}</span>
+      </div>
+      ${r.price ? `
+      <div class="cost-row" style="margin-top:8px"><span>Selling Price</span><span>฿${r.price.toFixed(2)}</span></div>
+      <div class="cost-row"><span>Gross Profit</span>
+        <span style="color:${gp>0?'var(--accent2)':'var(--danger)'}">฿${gp.toFixed(2)}</span>
+      </div>
+      <div class="cost-row total"><span>Margin</span>
+        <span style="color:${margin>=30?'var(--accent2)':margin>=15?'var(--warn)':'var(--danger)'}">${margin.toFixed(1)}%</span>
+      </div>
+      <div class="cost-row" style="font-size:12px;color:var(--muted)">
+        <span>Food Cost %</span><span>${((ingPerServ/r.price)*100).toFixed(1)}%</span>
+      </div>` : ''}
     </div>
     <div style="font-size:11px;color:var(--muted);margin-top:10px">Updated: ${new Date(r.updatedAt||r.createdAt).toLocaleString()}</div>
   `;
